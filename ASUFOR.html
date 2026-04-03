@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#F59E0B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>ASUFOR Diandioly · Relevé intelligent v8.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-app: #0A0A0C;
+            --bg-card: #14161A;
+            --bg-elevated: #1E2028;
+            --text-primary: #F1F3F5;
+            --text-secondary: #9CA3AF;
+            --accent: #F59E0B;
+            --accent-glow: rgba(245, 158, 11, 0.2);
+            --danger: #EF4444;
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --success: #10B981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --border: #2C2F36;
+            --purple: #8B5CF6;
+            --blue: #3B82F6;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ====== HEADER ====== */
+        .header {
+            background: rgba(20, 22, 26, 0.96);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), #D97706);
+            color: #000;
+            font-weight: 800;
+            font-size: 1.4rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .agent-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .agent-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .counter-badge {
+            background: var(--bg-elevated);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        .online-dot.offline {
+            background: var(--danger);
+            box-shadow: 0 0 6px var(--danger);
+        }
+
+        /* ====== PROGRESS BAR ====== */
+        .progress-container {
+            padding: 0 14px;
+            margin: 12px 0 4px;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #FBBF24);
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            width: 0%;
+        }
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            padding: 0 2px;
+        }
+
+        /* ====== FILTER TABS ====== */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 8px 14px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .filter-tab.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        /* ====== SEARCH ====== */
+        .search-container {
+            padding: 8px 14px;
+            position: sticky;
+            top: 72px;
+            background: var(--bg-app);
+            z-index: 90;
+        }
+        #search {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 44px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: white;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        #search:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+        #search::placeholder { color: var(--text-secondary); }
+
+        /* ====== CARDS ====== */
+        .card {
+            background: var(--bg-card);
+            margin: 10px 14px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.25s ease;
+            animation: cardIn 0.3s ease;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card.done {
+            border-left: 5px solid var(--success);
+            background: linear-gradient(90deg, rgba(16,185,129,0.05) 0%, var(--bg-card) 8%);
+        }
+        .card.has-anomaly:not(.done) {
+            border-left: 5px solid var(--danger);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+        .client-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.2px;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .compteur-num {
+            font-size: 0.7rem;
+            background: var(--bg-elevated);
+            padding: 4px 8px;
+            border-radius: 30px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .old-index {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: inline-block;
+            background: rgba(156,163,175,0.08);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* ====== INPUT GROUP ====== */
+        .input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+        }
+        .input-index {
+            flex: 1;
+            min-width: 0;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 13px 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input-index:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+        .input-index.error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 2px var(--danger-bg);
+        }
+
+        .btn-ok {
+            background: var(--accent);
+            border: none;
+            padding: 13px 18px;
+            border-radius: 40px;
+            font-weight: 800;
+            color: #0A0A0C;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.05s, opacity 0.15s;
+            min-width: 64px;
+            flex-shrink: 0;
+        }
+        .btn-ok:active { transform: scale(0.96); }
+        .btn-ok:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-ok.loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .btn-anomaly {
+            background: var(--danger-bg);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: var(--danger);
+            font-weight: bold;
+            padding: 12px 14px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .btn-anomaly:active { background: rgba(239,68,68,0.2); }
+
+        .validated-index {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--success);
+            background: var(--success-bg);
+            padding: 8px 16px;
+            border-radius: 40px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .warning-msg {
+            font-size: 0.72rem;
+            margin-top: 6px;
+            color: var(--danger);
+            min-height: 1.2em;
+        }
+
+        .conso-alert {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            padding: 6px 12px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+        .conso-alert.normal { background: var(--success-bg); color: var(--success); }
+        .conso-alert.high { background: rgba(251,191,36,0.1); color: #FBBF24; }
+        .conso-alert.very-high { background: var(--danger-bg); color: var(--danger); }
+
+        .anomaly-badge {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            background: var(--danger-bg);
+            padding: 6px 12px;
+            border-radius: 40px;
+            color: var(--danger);
+            display: inline-block;
+        }
+
+        .timestamp {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            opacity: 0.7;
+        }
+
+        /* ====== FOOTER ====== */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 12px 16px calc(12px + var(--safe-bottom));
+            background: rgba(20, 22, 26, 0.96);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+            z-index: 200;
+        }
+        .btn-report {
+            flex: 1;
+            background: var(--purple);
+            border: none;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            padding: 14px 0;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.1s, transform 0.05s;
+        }
+        .btn-report:active { opacity: 0.85; transform: scale(0.98); }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            border-radius: 60px;
+            padding: 12px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .btn-logout:active { background: var(--danger-bg); }
+
+        /* ====== MODAL SYSTEM ====== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            animation: fadeIn 0.15s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            background: var(--bg-card);
+            width: 100%;
+            max-width: 380px;
+            border-radius: 28px;
+            padding: 24px 20px;
+            border: 1px solid var(--border);
+            animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-title {
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+        .rep-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px dashed var(--border);
+            font-size: 0.95rem;
+        }
+        .rep-row:last-of-type { border-bottom: none; }
+        .rep-row span { color: var(--text-secondary); }
+
+        .anomaly-section {
+            margin-top: 16px;
+            background: var(--bg-elevated);
+            padding: 12px;
+            border-radius: 16px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .anomaly-section h4 {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+        .anomaly-item {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-modal {
+            flex: 1;
+            padding: 14px;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.1s;
+        }
+        .btn-modal:active { opacity: 0.8; }
+        .btn-modal.primary {
+            background: var(--accent);
+            color: #000;
+        }
+        .btn-modal.secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .btn-modal.share {
+            background: var(--blue);
+            color: white;
+        }
+
+        /* ====== CONFIRMATION MODAL ====== */
+        .confirm-details {
+            background: var(--bg-elevated);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        .confirm-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+        .confirm-row .label { color: var(--text-secondary); }
+        .confirm-row .value { font-weight: 700; }
+        .confirm-row .value.accent { color: var(--accent); }
+        .confirm-row .value.success { color: var(--success); }
+
+        /* ====== ANOMALY MODAL ====== */
+        .anomaly-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .anomaly-option {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+        }
+        .anomaly-option:active,
+        .anomaly-option.selected {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+        }
+        .anomaly-custom {
+            width: 100%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 0.9rem;
+            resize: none;
+            margin-top: 8px;
+        }
+        .anomaly-custom:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* ====== EMPTY STATE ====== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+        /* ====== LOGIN ====== */
+        .login-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: radial-gradient(ellipse at 20% 40%, rgba(245,158,11,0.06), transparent 50%),
+                        radial-gradient(ellipse at 80% 60%, rgba(139,92,246,0.04), transparent 50%),
+                        var(--bg-app);
+        }
+        .logo-icon {
+            font-size: 3.5rem;
+            background: rgba(245, 158, 11, 0.12);
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 32px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+        .login-title {
+            color: var(--accent);
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        .login-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+            font-size: 0.85rem;
+        }
+        .login-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 16px;
+            border-radius: 60px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: white;
+            text-align: center;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            font-weight: 700;
+            transition: border-color 0.2s;
+        }
+        .login-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .login-input::placeholder {
+            letter-spacing: 0;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+        .login-btn {
+            background: var(--accent);
+            width: 100%;
+            max-width: 300px;
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            color: #000;
+            transition: transform 0.05s;
+        }
+        .login-btn:active { transform: scale(0.97); }
+        .login-btn:disabled { opacity: 0.5; }
+        .login-error {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-top: 12px;
+            min-height: 1.2em;
+        }
+
+        /* ====== INSTALL BANNER ====== */
+        .install-banner {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, var(--purple), #7C3AED);
+            padding: 14px 18px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 150;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+            animation: slideUpBanner 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes slideUpBanner {
+            from { transform: translateY(120px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .install-banner span { font-weight: 600; font-size: 0.9rem; }
+        .install-banner button {
+            background: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: var(--purple);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        /* ====== TOAST ====== */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            z-index: 3000;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ====== UTILITY ====== */
+        .hidden { display: none !important; }
+        #list { padding-bottom: 90px; }
+
+        /* ====== SCROLLBAR ====== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 360px) {
+            .input-group { flex-wrap: wrap; }
+            .btn-anomaly { width: 100%; text-align: center; }
+            .input-index { min-width: 80px; }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- ===== LOGIN ===== -->
+    <section id="login-section" class="login-container">
+        <div class="logo-icon">💧</div>
+        <h1 class="login-title">ASUFOR Diandioly</h1>
+        <p class="login-subtitle">Relevé intelligent v8.0</p>
+        <input type="number" id="agent-code" class="login-input"
+               placeholder="Code agent" inputmode="numeric" maxlength="6"
+               onkeydown="if(event.key==='Enter')login()">
+        <button onclick="login()" id="login-btn" class="login-btn">ACCÉDER À LA TOURNÉE</button>
+        <div id="login-error" class="login-error"></div>
+    </section>
+
+    <!-- ===== MAIN APP ===== -->
+    <section id="main-section" class="hidden">
+        <header class="header">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <div id="avatar" class="avatar">A</div>
+                <div class="agent-info" style="min-width:0;">
+                    <h3 id="agent-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Agent</h3>
+                    <p id="agent-zone">Zone</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="online-dot" id="online-dot" title="En ligne"></div>
+                <div class="counter-badge" id="count-done">0</div>
+            </div>
+        </header>
+
+        <!-- Progress bar -->
+        <div class="progress-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+                <span id="progress-label">0 / 0 relevés</span>
+                <span id="progress-pct">0%</span>
+            </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all" onclick="setFilter('all',this)">📋 Tous</button>
+            <button class="filter-tab" data-filter="pending" onclick="setFilter('pending',this)">⏳ En attente</button>
+            <button class="filter-tab" data-filter="done" onclick="setFilter('done',this)">✅ Relevés</button>
+            <button class="filter-tab" data-filter="anomaly" onclick="setFilter('anomaly',this)">⚠️ Anomalies</button>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="search" placeholder="🔍 Rechercher client, compteur..."
+                   oninput="applyFilters()">
+        </div>
+
+        <!-- Client list -->
+        <div id="list"></div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <button class="btn-report" onclick="showReport()">📋 RAPPORT</button>
+            <button class="btn-logout" onclick="confirmLogout()">↺</button>
+        </div>
+    </section>
+</div>
+
+<!-- Install Banner -->
+<div id="install-banner" class="install-banner hidden">
+    <span>📱 Installer l'application</span>
+    <button id="install-btn">Installer</button>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+// ==================== CONSTANTS ====================
+const PRICE_PER_M3 = 250;
+const HIGH_CONSO_THRESHOLD = 30;    // m³ → alerte jaune
+const VERY_HIGH_CONSO_THRESHOLD = 60; // m³ → alerte rouge
+const ANOMALY_PRESETS = [
+    "Compteur cassé / endommagé",
+    "Compteur inaccessible",
+    "Accès refusé par l'abonné",
+    "Fuite visible au compteur",
+    "Compteur bloqué / ne tourne pas",
+    "Cadran illisible"
+];
+
+// ==================== SERVICE WORKER ====================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('SW enregistré:', reg.scope))
+            .catch(err => console.warn('SW erreur:', err));
+    });
+}
+
+// ==================== PWA INSTALL ====================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner')?.classList.remove('hidden');
+});
+document.getElementById('install-btn')?.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+        document.getElementById('install-banner')?.classList.add('hidden');
+    }
+    deferredPrompt = null;
+});
+window.addEventListener('appinstalled', () => {
+    document.getElementById('install-banner')?.classList.add('hidden');
+    deferredPrompt = null;
+});
+
+// ==================== FIREBASE ====================
+firebase.initializeApp({
+    databaseURL: "https://asufor-67a06-default-rtdb.firebaseio.com"
+});
+const db = firebase.database();
+
+// ==================== ONLINE STATUS ====================
+function updateOnlineStatus() {
+    const dot = document.getElementById('online-dot');
+    if (dot) {
+        dot.classList.toggle('offline', !navigator.onLine);
+        dot.title = navigator.onLine ? 'En ligne' : 'Hors ligne';
+    }
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ==================== AGENT MAPPING ====================
+const agentMapping = {
+    "314159": "3ba02f036c5d478e",
+    "165212": "1652121ddc117c03",
+    "519434": "519434457adc6275",
+    "600117": "60011778a7c78e6c",
+    "864720": "8647205a63f9a12d",
+    "877636": "e8776c3636c7d7d3"
+};
+
+// ==================== STATE ====================
+let currentAgentId = null;
+let activeQueryRef = null;     // FIX: store the query ref
+let activeCallback = null;     // FIX: store the callback
+let clientsCache = [];         // local cache of clients
+let currentFilter = 'all';
+
+// ==================== UTILITY FUNCTIONS ====================
+function escapeHtml(str) {
+    if (!str) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return str.replace(/[&<>"']/g, m => map[m]);
+}
+
+function showToast(message, duration = 2500) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+function formatDateTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) + ' à ' +
+           d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getConsoLevel(conso) {
+    if (conso >= VERY_HIGH_CONSO_THRESHOLD) return 'very-high';
+    if (conso >= HIGH_CONSO_THRESHOLD) return 'high';
+    return 'normal';
+}
+
+function getConsoLabel(level) {
+    if (level === 'very-high') return '🔴 Conso très élevée';
+    if (level === 'high') return '🟡 Conso élevée';
+    return '🟢 Conso normale';
+}
+
+// ==================== MODAL SYSTEM ====================
+function openModal(html) {
+    closeModal();
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `<div class="modal-overlay" onclick="handleOverlayClick(event)">${html}</div>`;
+}
+function closeModal() {
+    document.getElementById('modal-container').innerHTML = '';
+}
+function handleOverlayClick(e) {
+    if (e.target.classList.contains('modal-overlay')) closeModal();
+}
+
+// ==================== LOGIN ====================
+function login() {
+    const codeInput = document.getElementById('agent-code');
+    const errorDiv = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    const code = codeInput.value.trim();
+
+    errorDiv.textContent = '';
+
+    if (code.length !== 6) {
+        errorDiv.textContent = '⚠️ Le code doit contenir 6 chiffres';
+        return;
+    }
+
+    const agentRealId = agentMapping[code];
+    if (!agentRealId) {
+        errorDiv.textContent = '❌ Code agent invalide';
+        codeInput.value = '';
+        codeInput.focus();
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'CONNEXION...';
+
+    db.ref('db_agents/' + agentRealId).once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) {
+                errorDiv.textContent = '⚠️ Agent non enregistré dans la base';
+                btn.disabled = false;
+                btn.textContent = 'ACCÉDER À LA TOURNÉE';
+                return;
+            }
+            const agentData = snapshot.val();
+            localStorage.setItem('asufor_id', agentRealId);
+            localStorage.setItem('agent_name', agentData.agent || 'Agent');
+            localStorage.setItem('agent_zone', agentData.zone || 'Zone');
+            currentAgentId = agentRealId;
+            enterApp(agentData.agent, agentData.zone);
+        })
+        .catch(err => {
+            console.error('Login error:', err);
+            errorDiv.textContent = '📡 Erreur réseau. Vérifiez votre connexion.';
+            btn.disabled = false;
+            btn.textContent = 'ACCÉDER À LA TOURNÉE';
+        });
+}
+
+function enterApp(name, zone) {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('main-section').classList.remove('hidden');
+    document.getElementById('agent-name').textContent = name || 'Agent';
+    document.getElementById('agent-zone').textContent = zone || 'Zone';
+    document.getElementById('avatar').textContent = (name || 'A').charAt(0).toUpperCase();
+    updateOnlineStatus();
+    loadClientsData(currentAgentId);
+}
+
+// ==================== CLIENT DATA ====================
+function loadClientsData(agentId) {
+    detachListener();
+
+    activeQueryRef = db.ref('asufor_db_diandioly').orderByChild('agent_id').equalTo(agentId);
+    activeCallback = activeQueryRef.on('value', (snapshot) => {
+        processSnapshot(snapshot);
+    }, (error) => {
+        console.error('Firebase listener error:', error);
+        showToast('⚠️ Erreur de synchronisation');
+    });
+}
+
+function detachListener() {
+    if (activeQueryRef && activeCallback) {
+        activeQueryRef.off('value', activeCallback);
+        activeQueryRef = null;
+        activeCallback = null;
+    }
+}
+
+function processSnapshot(snapshot) {
+    clientsCache = [];
+    snapshot.forEach(childSnap => {
+        clientsCache.push({
+            key: childSnap.key,
+            data: childSnap.val()
+        });
+    });
+
+    // Sort alphabetically
+    clientsCache.sort((a, b) => (a.data.name || '').localeCompare(b.data.name || '', 'fr'));
+
+    renderAll();
+}
+
+// ==================== RENDERING ====================
+function renderAll() {
+    const container = document.getElementById('list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const searchTerm = (document.getElementById('search')?.value || '').toLowerCase().trim();
+
+    let totalCount = clientsCache.length;
+    let doneCount = 0;
+    let visibleCount = 0;
+
+    for (const item of clientsCache) {
+        const { key, data } = item;
+        const isDone = data.statut === "true";
+        const hasAnomaly = !!(data.note && data.note.trim());
+        if (isDone) doneCount++;
+
+        // Filter logic
+        if (currentFilter === 'done' && !isDone) continue;
+        if (currentFilter === 'pending' && isDone) continue;
+        if (currentFilter === 'anomaly' && !hasAnomaly) continue;
+
+        // Search logic
+        const searchStr = ((data.name || '') + ' ' + (data.numero_compteur || '')).toLowerCase();
+        if (searchTerm && !searchStr.includes(searchTerm)) continue;
+
+        visibleCount++;
+        container.appendChild(createCard(key, data, isDone, hasAnomaly));
+    }
+
+    if (visibleCount === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">${searchTerm ? '🔍' : '📭'}</div>
+                <p>${searchTerm ? 'Aucun résultat pour cette recherche' : 'Aucun client dans cette catégorie'}</p>
+            </div>`;
+    }
+
+    // Update counters
+    document.getElementById('count-done').textContent = doneCount;
+
+    // Update progress
+    const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+    const fillEl = document.getElementById('progress-fill');
+    if (fillEl) fillEl.style.width = pct + '%';
+    const labelEl = document.getElementById('progress-label');
+    if (labelEl) labelEl.textContent = `${doneCount} / ${totalCount} relevés`;
+    const pctEl = document.getElementById('progress-pct');
+    if (pctEl) pctEl.textContent = pct + '%';
+}
+
+function createCard(key, data, isDone, hasAnomaly) {
+    const card = document.createElement('div');
+    card.className = 'card' + (isDone ? ' done' : '') + (hasAnomaly && !isDone ? ' has-anomaly' : '');
+    card.id = 'card_' + key;
+
+    if (isDone) {
+        const conso = ((data.new_index || 0) - (data.last_index || 0));
+        const montant = (data.apaid || 0);
+        const consoLevel = getConsoLevel(conso);
+
+        card.innerHTML = `
+            <div class="client-header">
+                <span class="client-name">${escapeHtml(data.name)}</span>
+                <span class="compteur-num">📟 ${escapeHtml(String(data.numero_compteur))}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px;">
+                <span class="old-index">📊 Ancien: ${data.last_index} m³</span>
+                <div class="validated-index">✅ ${data.new_index} m³</div>
+            </div>
+            <div class="conso-alert ${consoLevel}">
+                ${getConsoLabel(consoLevel)} · 💧 ${conso.toFixed(1)} m³ · 💰 ${Math.round(montant).toLocaleString('fr-FR')} F
+            </div>
+            ${hasAnomaly ? `<div class="anomaly-badge">⚠️ ${escapeHtml(data.note)}</div>` : ''}
+            ${data.releve_date ? `<div class="timestamp">🕐 ${formatDateTime(data.releve_date)}</div>` : ''}
+        `;
+    } else {
+        card.innerHTML = `
+            <div class="client-header">
+                <span class="client-name">${escapeHtml(data.name)}</span>
+                <span class="compteur-num">🔢 ${escapeHtml(String(data.numero_compteur))}</span>
+            </div>
+            <div class="old-index">📖 Dernier index: <strong>${data.last_index} m³</strong></div>
+            ${hasAnomaly ? `<div class="anomaly-badge">⚠️ ${escapeHtml(data.note)}</div>` : ''}
+            <div class="input-group">
+                <button class="btn-anomaly" id="anom_${key}" title="Signaler anomalie">⚠️</button>
+                <input type="number" id="idx1_${key}" class="input-index"
+                       placeholder="Index" inputmode="decimal" step="0.1">
+                <input type="number" id="idx2_${key}" class="input-index"
+                       placeholder="Confirmer" inputmode="decimal" step="0.1">
+                <button id="btn_ok_${key}" class="btn-ok" disabled>OK</button>
+            </div>
+            <div class="warning-msg" id="warn_${key}"></div>
+        `;
+
+        // Defer event binding
+        requestAnimationFrame(() => attachCardEvents(key, data));
+    }
+
+    return card;
+}
+
+// ==================== CARD EVENT HANDLERS ====================
+function attachCardEvents(key, data) {
+    const input1 = document.getElementById(`idx1_${key}`);
+    const input2 = document.getElementById(`idx2_${key}`);
+    const btnOk = document.getElementById(`btn_ok_${key}`);
+    const warnDiv = document.getElementById(`warn_${key}`);
+    const anomBtn = document.getElementById(`anom_${key}`);
+
+    if (!input1 || !input2 || !btnOk) return;
+
+    const lastIdx = Number(data.last_index) || 0;
+
+    function validate() {
+        const v1 = input1.value.trim();
+        const v2 = input2.value.trim();
+
+        // Reset styles
+        input1.classList.remove('error');
+        input2.classList.remove('error');
+        if (warnDiv) warnDiv.textContent = '';
+
+        if (!v1 || !v2) {
+            btnOk.disabled = true;
+            return;
+        }
+
+        const n1 = parseFloat(v1);
+        const n2 = parseFloat(v2);
+
+        if (isNaN(n1) || isNaN(n2)) {
+            btnOk.disabled = true;
+            if (warnDiv) warnDiv.textContent = '⚠️ Valeurs numériques requises';
+            return;
+        }
+
+        if (n1 <= lastIdx) {
+            btnOk.disabled = true;
+            input1.classList.add('error');
+            if (warnDiv) warnDiv.textContent = `⚠️ L'index doit être > ${lastIdx} m³`;
+            return;
+        }
+
+        if (n1 !== n2) {
+            btnOk.disabled = true;
+            input2.classList.add('error');
+            if (warnDiv) warnDiv.textContent = '❌ Les deux valeurs ne correspondent pas';
+            return;
+        }
+
+        btnOk.disabled = false;
+
+        // Preview consumption
+        const prevConso = n1 - lastIdx;
+        const level = getConsoLevel(prevConso);
+        if (level !== 'normal' && warnDiv) {
+            warnDiv.innerHTML = `<span style="color:${level === 'very-high' ? 'var(--danger)' : '#FBBF24'}">
+                ${getConsoLabel(level)}: ${prevConso.toFixed(1)} m³ (${Math.round(prevConso * PRICE_PER_M3).toLocaleString('fr-FR')} F)
+            </span>`;
+        }
+    }
+
+    input1.addEventListener('input', validate);
+    input2.addEventListener('input', validate);
+
+    // Enter key navigation
+    input1.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); input2.focus(); }
+    });
+    input2.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); if (!btnOk.disabled) btnOk.click(); }
+    });
+
+    // OK button → show confirmation
+    btnOk.addEventListener('click', () => {
+        const n1 = parseFloat(input1.value.trim());
+        const n2 = parseFloat(input2.value.trim());
+        if (isNaN(n1) || isNaN(n2) || n1 !== n2 || n1 <= lastIdx) return;
+        showConfirmation(key, data, n1);
+    });
+
+    // Anomaly button
+    if (anomBtn) {
+        anomBtn.addEventListener('click', () => showAnomalyModal(key, data));
+    }
+}
+
+// ==================== CONFIRMATION MODAL ====================
+function showConfirmation(key, data, newIndex) {
+    const lastIdx = Number(data.last_index) || 0;
+    const conso = newIndex - lastIdx;
+    const montant = Math.round(conso * PRICE_PER_M3);
+    const level = getConsoLevel(conso);
+
+    openModal(`
+        <div class="modal-content">
+            <h3 class="modal-title">🔍 Confirmer le relevé</h3>
+            <p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;margin-bottom:8px;">
+                ${escapeHtml(data.name)}
+            </p>
+            <div class="confirm-details">
+                <div class="confirm-row">
+                    <span class="label">Ancien index</span>
+                    <span class="value">${lastIdx} m³</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="label">Nouvel index</span>
+                    <span class="value accent">${newIndex} m³</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="label">Consommation</span>
+                    <span class="value">${conso.toFixed(1)} m³</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="label">Montant à facturer</span>
+                    <span class="value success">${montant.toLocaleString('fr-FR')} F CFA</span>
+                </div>
+            </div>
+            ${level !== 'normal' ? `<div class="conso-alert ${level}" style="text-align:center;width:100%;margin-bottom:8px;">${getConsoLabel(level)}</div>` : ''}
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
+                <button class="btn-modal primary" id="confirm-submit-btn" onclick="submitReading('${key}', ${newIndex})">✓ Valider</button>
+            </div>
+        </div>
+    `);
+}
+
+async function submitReading(key, newIndex) {
+    const btn = document.getElementById('confirm-submit-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Envoi...';
+    }
+
+    // Get current data from cache
+    const item = clientsCache.find(c => c.key === key);
+    if (!item) { closeModal(); return; }
+
+    const lastIdx = Number(item.data.last_index) || 0;
+    const conso = newIndex - lastIdx;
+    const apaid = Math.round(conso * PRICE_PER_M3);
+
+    try {
+        await db.ref(`asufor_db_diandioly/${key}`).update({
+            new_index: newIndex,
+            apaid: apaid,
+            statut: "true",
+            releve_date: Date.now()
+        });
+        closeModal();
+        showToast('✅ Relevé enregistré');
+    } catch (err) {
+        console.error('Submit error:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✓ Réessayer';
+        }
+        showToast('❌ Erreur, réessayez');
+    }
+}
+
+// ==================== ANOMALY MODAL ====================
+function showAnomalyModal(key, data) {
+    const presetsHtml = ANOMALY_PRESETS.map((p, i) =>
+        `<button class="anomaly-option" onclick="selectAnomalyPreset(this, ${i})">${escapeHtml(p)}</button>`
+    ).join('');
+
+    openModal(`
+        <div class="modal-content">
+            <h3 class="modal-title">⚠️ Signaler une anomalie</h3>
+            <p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;margin-bottom:4px;">
+                ${escapeHtml(data.name)} · 📟 ${escapeHtml(String(data.numero_compteur))}
+            </p>
+            <div class="anomaly-options" id="anomaly-options">
+                ${presetsHtml}
+            </div>
+            <textarea class="anomaly-custom" id="anomaly-custom" rows="2"
+                      placeholder="Ou décrivez l'anomalie..."></textarea>
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
+                <button class="btn-modal primary" style="background:var(--danger);color:white;"
+                        onclick="submitAnomaly('${key}')">Enregistrer</button>
+            </div>
+        </div>
+    `);
+}
+
+let selectedPresetIndex = -1;
+
+function selectAnomalyPreset(el, index) {
+    document.querySelectorAll('.anomaly-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPresetIndex = index;
+    const customField = document.getElementById('anomaly-custom');
+    if (customField) customField.value = '';
+}
+
+async function submitAnomaly(key) {
+    const customText = document.getElementById('anomaly-custom')?.value.trim();
+    let anomalyMsg = '';
+
+    if (selectedPresetIndex >= 0) {
+        anomalyMsg = ANOMALY_PRESETS[selectedPresetIndex];
+    }
+    if (customText) {
+        anomalyMsg = customText;
+    }
+
+    if (!anomalyMsg) {
+        showToast('⚠️ Sélectionnez ou décrivez une anomalie');
+        return;
+    }
+
+    try {
+        await db.ref(`asufor_db_diandioly/${key}`).update({
+            note: anomalyMsg,
+            anomaly_date: Date.now()
+        });
+        closeModal();
+        selectedPresetIndex = -1;
+        showToast('⚠️ Anomalie enregistrée');
+    } catch (err) {
+        console.error('Anomaly error:', err);
+        showToast('❌ Erreur, réessayez');
+    }
+}
+
+// ==================== FILTERS ====================
+function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderAll();
+}
+
+function applyFilters() {
+    renderAll();
+}
+
+// ==================== REPORT ====================
+function showReport() {
+    if (!currentAgentId || !clientsCache.length) {
+        showToast('📭 Aucune donnée disponible');
+        return;
+    }
+
+    let totalClients = clientsCache.length;
+    let doneClients = 0;
+    let volumeTotal = 0;
+    let recetteTotal = 0;
+    const anomaliesList = [];
+    let highConsoClients = [];
+
+    for (const { data } of clientsCache) {
+        if (data.statut === "true") {
+            doneClients++;
+            const conso = (Number(data.new_index) || 0) - (Number(data.last_index) || 0);
+            if (conso > 0) {
+                volumeTotal += conso;
+                recetteTotal += Number(data.apaid) || 0;
+                if (conso >= HIGH_CONSO_THRESHOLD) {
+                    highConsoClients.push({ name: data.name, conso });
+                }
+            }
+        }
+        if (data.note && data.note.trim()) {
+            anomaliesList.push({ name: data.name || 'Client', note: data.note });
+        }
+    }
+
+    const pendingCount = totalClients - doneClients;
+    const pct = totalClients > 0 ? Math.round((doneClients / totalClients) * 100) : 0;
+
+    const anomaliesHtml = anomaliesList.length
+        ? `<div class="anomaly-section">
+            <h4>⚠️ Anomalies signalées (${anomaliesList.length})</h4>
+            ${anomaliesList.map(a => `<div class="anomaly-item">• <strong>${escapeHtml(a.name)}</strong>: ${escapeHtml(a.note)}</div>`).join('')}
+           </div>`
+        : `<div class="anomaly-section" style="color:var(--success);text-align:center;">
+            ✅ Aucune anomalie signalée
+           </div>`;
+
+    const highConsoHtml = highConsoClients.length
+        ? `<div class="anomaly-section" style="margin-top:8px;">
+            <h4 style="color:#FBBF24;">🟡 Consommations élevées (${highConsoClients.length})</h4>
+            ${highConsoClients.map(c => `<div class="anomaly-item">• ${escapeHtml(c.name)}: ${c.conso.toFixed(1)} m³</div>`).join('')}
+           </div>`
+        : '';
+
+    openModal(`
+        <div class="modal-content">
+            <h3 class="modal-title">📋 RAPPORT DE TOURNÉE</h3>
+            <div class="rep-row">
+                <span>📊 Progression</span>
+                <b>${pct}% (${doneClients}/${totalClients})</b>
+            </div>
+            <div class="rep-row">
+                <span>⏳ En attente</span>
+                <b style="color:${pendingCount > 0 ? '#FBBF24' : 'var(--success)'};">${pendingCount}</b>
+            </div>
+            <div class="rep-row">
+                <span>💧 Volume total</span>
+                <b>${volumeTotal.toFixed(1)} m³</b>
+            </div>
+            <div class="rep-row">
+                <span>💰 Recette (${PRICE_PER_M3} F/m³)</span>
+                <b style="color:#FBBF24;">${Math.round(recetteTotal).toLocaleString('fr-FR')} F CFA</b>
+            </div>
+            ${anomaliesHtml}
+            ${highConsoHtml}
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeModal()">Fermer</button>
+                <button class="btn-modal share" onclick="shareReport()">📤 Partager</button>
+            </div>
+        </div>
+    `);
+}
+
+function shareReport() {
+    let totalClients = clientsCache.length;
+    let doneClients = 0;
+    let volumeTotal = 0;
+    let recetteTotal = 0;
+    const anomaliesList = [];
+
+    for (const { data } of clientsCache) {
+        if (data.statut === "true") {
+            doneClients++;
+            const conso = (Number(data.new_index) || 0) - (Number(data.last_index) || 0);
+            if (conso > 0) {
+                volumeTotal += conso;
+                recetteTotal += Number(data.apaid) || 0;
+            }
+        }
+        if (data.note && data.note.trim()) {
+            anomaliesList.push(`• ${data.name}: ${data.note}`);
+        }
+    }
+
+    const agentName = localStorage.getItem('agent_name') || 'Agent';
+    const agentZone = localStorage.getItem('agent_zone') || 'Zone';
+    const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    const text = `📋 RAPPORT ASUFOR DIANDIOLY
+━━━━━━━━━━━━━━━━━━
+📅 ${date}
+👤 Agent: ${agentName}
+📍 Zone: ${agentZone}
+
+📊 Progression: ${doneClients}/${totalClients} clients
+💧 Volume: ${volumeTotal.toFixed(1)} m³
+💰 Recette: ${Math.round(recetteTotal).toLocaleString('fr-FR')} F CFA
+${anomaliesList.length ? `\n⚠️ Anomalies (${anomaliesList.length}):\n${anomaliesList.join('\n')}` : '\n✅ Aucune anomalie'}
+━━━━━━━━━━━━━━━━━━`;
+
+    if (navigator.share) {
+        navigator.share({ title: 'Rapport ASUFOR', text })
+            .catch(() => copyToClipboard(text));
+    } else {
+        copyToClipboard(text);
+    }
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('📋 Rapport copié !'))
+            .catch(() => showToast('❌ Erreur de copie'));
+    } else {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showToast('📋 Rapport copié !');
+        } catch (e) {
+            showToast('❌ Erreur de copie');
+        }
+        document.body.removeChild(ta);
+    }
+}
+
+// ==================== LOGOUT ====================
+function confirmLogout() {
+    openModal(`
+        <div class="modal-content" style="text-align:center;">
+            <h3 class="modal-title">↺ Déconnexion</h3>
+            <p style="color:var(--text-secondary);margin:16px 0;">
+                Êtes-vous sûr de vouloir vous déconnecter ?<br>
+                <small>Les données sauvegardées ne seront pas perdues.</small>
+            </p>
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
+                <button class="btn-modal primary" style="background:var(--danger);color:white;" onclick="logout()">Déconnexion</button>
+            </div>
+        </div>
+    `);
+}
+
+function logout() {
+    detachListener();
+    clientsCache = [];
+    currentAgentId = null;
+    localStorage.removeItem('asufor_id');
+    localStorage.removeItem('agent_name');
+    localStorage.removeItem('agent_zone');
+    closeModal();
+    location.reload();
+}
+
+// ==================== INIT ====================
+window.addEventListener('DOMContentLoaded', () => {
+    const storedId = localStorage.getItem('asufor_id');
+    if (storedId) {
+        currentAgentId = storedId;
+        const name = localStorage.getItem('agent_name') || 'Agent';
+        const zone = localStorage.getItem('agent_zone') || 'Zone';
+        enterApp(name, zone);
+    }
+});
+
+// ==================== EXPOSE TO GLOBAL ====================
+window.login = login;
+window.showReport = showReport;
+window.shareReport = shareReport;
+window.closeModal = closeModal;
+window.handleOverlayClick = handleOverlayClick;
+window.confirmLogout = confirmLogout;
+window.logout = logout;
+window.setFilter = setFilter;
+window.applyFilters = applyFilters;
+window.showConfirmation = showConfirmation;
+window.submitReading = submitReading;
+window.showAnomalyModal = showAnomalyModal;
+window.selectAnomalyPreset = selectAnomalyPreset;
+window.submitAnomaly = submitAnomaly;
+window.copyToClipboard = copyToClipboard;
+</script>
+</body>
+</html>

@@ -829,12 +829,85 @@ function executeLogout() {
     localStorage.clear(); 
     location.reload();
 }
+// ==================== PWA INSTALL & INIT ====================
+let deferredPrompt;
 
-// INIT
+function isInStandaloneMode() {
+    return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+}
+
+// On capture l'événement d'installation de Chrome/Android
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); // Empêche la barre par défaut
+    deferredPrompt = e;  // Sauvegarde l'événement pour le bouton
+    console.log("Prêt pour l'installation directe");
+    
+    // Si on n'est pas déjà dans l'app, on affiche notre bouton
+    const installBanner = document.getElementById('install-banner');
+    if (installBanner && !isInStandaloneMode()) {
+        installBanner.classList.remove('hidden');
+        installBanner.style.display = 'flex';
+    }
+});
+
+window.addEventListener('appinstalled', () => {
+    const installBanner = document.getElementById('install-banner');
+    if (installBanner) installBanner.style.display = 'none';
+    deferredPrompt = null;
+    showToast("✅ Application installée !");
+});
+
+// ==================== INIT (DÉMARRAGE) ====================
 window.addEventListener('DOMContentLoaded', () => {
     loadTheme(); 
-    if (navigator.onLine && 'caches' in window) {
-        caches.keys().then(names => { for (let name of names) { caches.delete(name); } });
+
+    const installBanner = document.getElementById('install-banner');
+    const installBtn = document.getElementById('install-btn');
+
+    // Affichage forcé au démarrage si on est sur navigateur
+    if (installBanner && !isInStandaloneMode()) {
+        installBanner.classList.remove('hidden');
+        installBanner.style.display = 'flex';
+    } else if (installBanner) {
+        installBanner.style.display = 'none';
+    }
+
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // --- INSTALLATION DIRECTE (Android/PC) ---
+                deferredPrompt.prompt(); // Affiche la fenêtre système immédiatement
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    if (installBanner) installBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                // --- CAS PARTICULIER (iPhone ou installation déjà lancée) ---
+                // Si deferredPrompt est vide, c'est que le navigateur ne permet pas l'installation par code
+                const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                
+                if (isiOS) {
+                    openModal(`
+                        <div class="modal-content" style="text-align:center;">
+                            <div style="font-size: 3rem; margin-bottom: 10px;">🍏</div>
+                            <h3 class="modal-title">Installation sur iPhone</h3>
+                            <p style="color:var(--text-secondary); margin-bottom:15px; font-size:0.9rem;">Apple impose une installation manuelle :</p>
+                            <div style="text-align:left; background:var(--bg-elevated); padding:15px; border-radius:15px; margin-bottom:20px; font-size:0.85rem;">
+                                <p>Appuyez sur le bouton Partager <b>⍐</b> (en bas de Safari), puis choisissez <b>"Sur l'écran d'accueil"</b>.</p>
+                            </div>
+                            <button class="btn-modal primary" onclick="closeModal()">J'ai compris</button>
+                        </div>
+                    `);
+                } else {
+                    showToast("Veuillez utiliser le menu de votre navigateur pour installer.");
+                }
+            }
+        });
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err));
     }
     
     if (localStorage.getItem('asufor_id')) {
@@ -845,6 +918,8 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
 });
+
+// EXPORTS (Gardez vos exports habituels ici...)
 
 // EXPORTS
 window.login = login;

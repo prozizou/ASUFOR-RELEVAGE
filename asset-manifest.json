@@ -1,0 +1,13 @@
+{
+  "hash": "v9.0.0",
+  "files": [
+    "./",
+    "./index.html",
+    "./style.css",
+    "./app.js",
+    "./manifest.json",
+    "./offline.html",
+    "./icons/icon-192.png",
+    "./icons/icon-512.png"
+  ]
+}

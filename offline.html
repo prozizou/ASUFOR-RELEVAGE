@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASUFOR - Hors ligne</title>
+    <style>
+        body {
+            background: #0A0A0C;
+            color: #F1F3F5;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 300px;
+        }
+        h1 {
+            color: #F59E0B;
+        }
+        button {
+            background: #F59E0B;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="font-size:3rem;">📡</div>
+        <h1>Vous êtes hors ligne</h1>
+        <p>L'application nécessite une connexion pour charger les données. Veuillez vérifier votre connexion et réessayer.</p>
+        <button onclick="location.reload()">Réessayer</button>
+        <p style="margin-top:30px;font-size:0.8rem;opacity:0.7;">
+            Les relevés déjà effectués sont sauvegardés localement.
+        </p>
+    </div>
+</body>
+</html>

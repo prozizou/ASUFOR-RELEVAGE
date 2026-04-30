@@ -1,22 +1,22 @@
-const CACHE_NAME = 'asufor-v12';
+const CACHE_NAME = 'asufor-v12.1';
 
 // Liste des fichiers à mettre en mémoire pour le mode hors-ligne
 const urlsToCache = [
   'index.html',
   'style.css',
   'offline.html',
-  'js/config.js',
-  'js/state.js',
-  'js/main.js',
-  'js/ui.js',
-  'js/auth.js',
-  'js/clients.js',
-  'js/actions.js',
-  'js/media.js',
-  'js/sync.js',
-  'js/offlineDb.js',
-  'js/reports.js',
-  'js/pwa.js',
+  'config.js',
+  'state.js',
+  'main.js',
+  'ui.js',
+  'auth.js',
+  'clients.js',
+  'actions.js',
+  'media.js',
+  'sync.js',
+  'offlineDb.js',
+  'reports.js',
+  'pwa.js',
   'manifest.json'
 ];
 

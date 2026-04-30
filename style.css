@@ -325,7 +325,7 @@ body {
 }
 .ocr-box { width: 100%; text-align: left; color: white; }
 #install-banner {
-    display: none; /* Caché par défaut, le JS décidera de l'afficher */
+    display: none;
     position: fixed;
     bottom: 20px;
     left: 14px;
@@ -341,5 +341,5 @@ body {
 }
 
 #install-banner:not(.hidden) {
-    display: flex !important; /* Force l'affichage si la classe hidden est enlevée */
+    display: flex !important;
 }

@@ -1,9 +1,8 @@
 {
-  "name": "ASUFOR Relevage",
+  "name": "ASUFOR Diandioly Relevé",
   "short_name": "ASUFOR",
   "description": "Application de relevé intelligent des compteurs d'eau pour ASUFOR Diandioly",
   "start_url": "./index.html",
-  "scope": "./",
   "display": "standalone",
   "background_color": "#0A0A0C",
   "theme_color": "#F59E0B",
@@ -13,7 +12,7 @@
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "icons/icon-512.png",
@@ -21,19 +20,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshots/wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "screenshots/mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
   ]
 }
+

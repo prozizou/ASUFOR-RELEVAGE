@@ -15,15 +15,29 @@ export async function loadTesseractIfNeeded() {
     });
 }
 
-export async function takePhoto(key) {
+export async function takePhoto(key, mode = 'index') {
     state.currentPhotoKey = key;
-    try { await loadTesseractIfNeeded(); } catch (err) { showToast('❌ Module OCR indisponible'); return; }
-    
+    state.currentPhotoMode = mode; // 'index' ou 'signalement'
+
+    if (mode === 'index') {
+        try { await loadTesseractIfNeeded(); } catch (err) { showToast('❌ Module OCR indisponible'); return; }
+    }
+
     document.getElementById('camera-modal').classList.remove('hidden');
     document.getElementById('camera-live-view').classList.remove('hidden');
     document.getElementById('camera-preview-view').classList.add('hidden');
     document.getElementById('ocr-input').value = '';
     document.getElementById('ocr-status').textContent = '🔍 Analyse...';
+
+    // Afficher ou masquer le bloc OCR selon le mode
+    const ocrBox = document.querySelector('.ocr-box');
+    if (ocrBox) ocrBox.style.display = mode === 'signalement' ? 'none' : '';
+
+    // Adapter le label du bouton de confirmation
+    const btnConfirm = document.getElementById('btn-confirm-photo');
+    if (btnConfirm) {
+        btnConfirm.innerHTML = mode === 'signalement' ? '📤 Envoyer le signalement' : '✅ Valider l\'index';
+    }
 
     try {
         const video = document.getElementById('camera-video');
@@ -73,7 +87,11 @@ export async function captureImage() {
         state.cameraStream = null;
     }
     
-    analyzeImageForOCR(fullCanvas);
+    if (state.currentPhotoMode !== 'signalement') {
+        analyzeImageForOCR(fullCanvas);
+    } else {
+        document.getElementById('ocr-status').textContent = '';
+    }
 }
 
 async function analyzeImageForOCR(canvas) {
@@ -91,10 +109,12 @@ async function analyzeImageForOCR(canvas) {
 
 export async function confirmPhotoAndIndex() {
     const key = state.currentPhotoKey;
+    const mode = state.currentPhotoMode || 'index';
     const val = document.getElementById('ocr-input').value.trim();
     
     const btn = document.getElementById('btn-confirm-photo');
-    btn.disabled = true; btn.innerHTML = '⏳ Envoi en cours...';
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Envoi en cours...';
 
     const formData = new FormData();
     formData.append('file', state.currentPhotoBlob);
@@ -106,16 +126,20 @@ export async function confirmPhotoAndIndex() {
         const res = await fetch('https://api.cloudinary.com/v1_1/dqmixe6oj/image/upload', { method: 'POST', body: formData });
         const data = await res.json();
         
-        // 2. Sauvegarde de l'URL Cloudinary dans Firebase
+        // 2. Sauvegarde dans Firebase
         const updateData = { photo_url: data.secure_url, last_modified: Date.now() };
         if (navigator.onLine) await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
         else await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
 
-        showToast('✅ Photo envoyée à l\'administration !');
+        if (mode === 'signalement') {
+            showToast('📤 Signalement envoyé à l\'administration !');
+        } else {
+            showToast('✅ Photo envoyée à l\'administration !');
+        }
         document.getElementById('camera-modal').classList.add('hidden');
         
-        // 3. Si un index a été détecté, on l'affiche sur la carte
-        if (val) {
+        // 3. Si mode index et index détecté, on l'affiche sur la carte
+        if (mode === 'index' && val) {
             const indexSpan = document.getElementById(`indexValue_${key}`);
             const btnOk = document.getElementById(`btn_ok_${key}`);
             if (indexSpan) indexSpan.textContent = val;
@@ -125,7 +149,7 @@ export async function confirmPhotoAndIndex() {
     } catch (err) { 
         showToast('❌ Erreur d\'envoi de l\'image'); 
     } finally {
-        btn.disabled = false; 
-        btn.innerHTML = '✅ Valider l\'index';
+        btn.disabled = false;
+        btn.innerHTML = mode === 'signalement' ? '📤 Envoyer le signalement' : '✅ Valider l\'index';
     }
 }

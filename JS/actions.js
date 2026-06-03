@@ -244,8 +244,8 @@ export async function reportWithPhoto(key) {
         }
     } catch (e) { console.error("Erreur marquage anomalie:", e); }
 
-    // Ouvre la caméra directement
-    takePhoto(key);
+    // Ouvre la caméra en mode signalement (sans OCR)
+    takePhoto(key, 'signalement');
 }
 
 export async function deleteAnomaly(key) {

@@ -11,6 +11,7 @@ export const state = {
     currentClientIndex: 0,
     
     currentPhotoKey: null,
+    currentPhotoMode: 'index',
     cameraStream: null,
     currentPhotoBlob: null,
     tesseractLoaded: false,

@@ -3,7 +3,7 @@ import { db } from './main.js';
 import { state } from './state.js';
 import { PAGE_SIZE, VERY_HIGH_CONSO_THRESHOLD, HIGH_CONSO_THRESHOLD } from './config.js';
 import { escapeHtml } from './ui.js';
-import { isDone, hasAnomaly, computeConso } from './utils.js';
+import { isDone, hasAnomaly, computeConso, computeApaid } from './utils.js';
 
 export function loadClientsData(agentId) {
     detachListener();
@@ -155,6 +155,7 @@ function createCard(key, data) {
 
     if (done) {
         const conso = computeConso(data);
+        const apaid = computeApaid(Math.max(0, conso));
         const consoClass = conso > VERY_HIGH_CONSO_THRESHOLD ? 'high' : (conso > HIGH_CONSO_THRESHOLD ? 'medium' : 'normal');
 
         const anomalyBadge = anomaly ? `<div class="anomaly-badge" style="margin-bottom:8px;">⚠️ Anomalie signalée</div>` : '';
@@ -164,7 +165,7 @@ function createCard(key, data) {
             ${anomalyBadge}
             ${photoBadge}
             <div class="validated-index">✅ ${data.new_index} m³</div>
-            <div class="conso-alert ${consoClass}">💧 ${conso.toFixed(1)} m³ · 💰 ${Math.round(data.apaid || 0).toLocaleString('fr-FR')} F</div>
+            <div class="conso-alert ${consoClass}">💧 ${conso.toFixed(1)} m³ · 💰 ${apaid.toLocaleString('fr-FR')} F</div>
             <button class="btn-edit" onclick="editReading('${key}')" style="margin-top:10px; width:100%;">✏️ Modifier l'index</button>
         `;
     } else {

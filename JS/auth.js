@@ -123,7 +123,7 @@ export function confirmLogout() {
 
     let warningMessage = 'Voulez-vous vraiment quitter votre session ?';
     if (parseInt(pendingCount) > 0) {
-        warningMessage += `\n\n⚠️ ${pendingCount} opération(s) en attente de synchronisation.`;
+        warningMessage += `\n\n⚠️ ${pendingCount} élément(s) pas encore envoyé(s).`;
     }
 
     openModal(`
@@ -144,12 +144,10 @@ export function confirmLogout() {
 }
 
 export function executeLogout() {
-    const theme = localStorage.getItem('theme');
     const pwaInstalled = localStorage.getItem('pwa_installed');
 
     localStorage.clear();
 
-    if (theme) localStorage.setItem('theme', theme);
     if (pwaInstalled) localStorage.setItem('pwa_installed', pwaInstalled);
 
     detachListener();

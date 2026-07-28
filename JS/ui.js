@@ -54,19 +54,3 @@ export function handleOverlayClick(e) {
     }
 }
 
-export function toggleTheme() {
-    const isLight = document.body.classList.toggle('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-}
-
-export function loadTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
-    } else if (!savedTheme) {
-        // Par défaut, utiliser la préférence système
-        if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-            document.body.classList.add('light-mode');
-        }
-    }
-}

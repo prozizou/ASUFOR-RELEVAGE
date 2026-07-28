@@ -20,14 +20,14 @@ export async function takePhoto(key, mode = 'index') {
     state.currentPhotoMode = mode; // 'index' ou 'signalement'
 
     if (mode === 'index') {
-        try { await loadTesseractIfNeeded(); } catch (err) { showToast('❌ Module OCR indisponible'); return; }
+        try { await loadTesseractIfNeeded(); } catch (err) { showToast('❌ Lecture automatique indisponible'); return; }
     }
 
     document.getElementById('camera-modal').classList.remove('hidden');
     document.getElementById('camera-live-view').classList.remove('hidden');
     document.getElementById('camera-preview-view').classList.add('hidden');
     document.getElementById('ocr-input').value = '';
-    document.getElementById('ocr-status').textContent = '🔍 Analyse...';
+    document.getElementById('ocr-status').textContent = '🔍 Lecture en cours...';
 
     // Afficher ou masquer le bloc OCR selon le mode
     const ocrBox = document.querySelector('.ocr-box');
@@ -110,11 +110,11 @@ async function analyzeImageForOCR(canvas) {
         const digits = result.data.text.replace(/[^0-9]/g, '');
         if (digits.length >= 3) {
             document.getElementById('ocr-input').value = digits;
-            document.getElementById('ocr-status').textContent = '✅ Chiffres détectés';
+            document.getElementById('ocr-status').textContent = '✅ Chiffre détecté';
         } else {
-            document.getElementById('ocr-status').textContent = '⚠️ Index illisible par l\'IA';
+            document.getElementById('ocr-status').textContent = '⚠️ Chiffre illisible, corrigez-le vous-même';
         }
-    } catch (e) { document.getElementById('ocr-status').textContent = '⚠️ Erreur d\'analyse'; }
+    } catch (e) { document.getElementById('ocr-status').textContent = '⚠️ Lecture impossible, entrez le chiffre vous-même'; }
 }
 
 export async function confirmPhotoAndIndex() {

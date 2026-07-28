@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#F59E0B">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,6 +18,7 @@
         <p class="login-subtitle">Relevage</p>
         
         <input type="number" id="agent-code" class="login-input" placeholder="Code agent" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')login()">
+        <p class="login-hint">Demandez ce code à votre superviseur</p>
         <button onclick="login()" id="login-btn" class="login-btn">ACCÉDER À LA TOURNÉE</button>
         <div id="login-error" class="login-error"></div>
     </section>
@@ -32,7 +33,6 @@
                 </div>
             </div>
             <div class="header-right">
-                <button class="btn-theme" onclick="toggleTheme()" title="Changer de thème">🌓</button>
                 <span id="sync-indicator" class="sync-pending hidden"></span>
                 <div class="online-dot" id="online-dot" title="En ligne"></div>
                 <div class="counter-badge" id="count-done">0</div>
@@ -100,9 +100,9 @@
         <img id="preview-img" src="" alt="Photo prise">
         <div class="preview-controls">
             <div class="ocr-box">
-                <label>Index détecté par l'IA (Modifiable) :</label>
+                <label>Chiffre lu automatiquement (vous pouvez le corriger) :</label>
                 <input type="number" id="ocr-input" class="login-input" style="width: 100%; margin: 8px 0; border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.1); color: white;" step="0.1">
-                <small id="ocr-status" style="color: var(--accent); display: block; min-height: 20px;">🔍 Analyse de l'image en cours...</small>
+                <small id="ocr-status" style="color: var(--accent); display: block; min-height: 20px;">🔍 Lecture du chiffre en cours...</small>
             </div>
             <div style="display: flex; gap: 10px; width: 100%; margin-top: 15px;">
                 <button class="btn-modal secondary" onclick="retakePhoto()" style="background: rgba(255,255,255,0.2); color: white; border: none;">🔄 Reprendre</button>

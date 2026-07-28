@@ -6,7 +6,7 @@ import { addPendingWrite } from './offlineDb.js';
 import { syncPendingWrites } from './sync.js';
 import { VERY_HIGH_CONSO_THRESHOLD } from './config.js';
 import { takePhoto } from './media.js';
-import { computeConso, computeApaid } from './utils.js';
+import { computeConso, computeApaid, isIndexDoubled } from './utils.js';
 
 export function openKeypad(key, last) {
     openModal(`
@@ -78,16 +78,23 @@ export async function confirmReading(key) {
     
     const conso = computeConso({ new_index: val, last_index: item.data.last_index });
     const apaid = computeApaid(conso);
-    
-    const consoWarning = conso > VERY_HIGH_CONSO_THRESHOLD ? 
+
+    const consoWarning = conso > VERY_HIGH_CONSO_THRESHOLD ?
         `<p style="color:var(--danger); margin-top:10px;">⚠️ Consommation anormalement élevée !</p>` : '';
-    
+
+    const doubleWarning = isIndexDoubled(val, item.data.last_index) ? `
+        <div style="background:var(--danger-bg); color:var(--danger); padding:12px 16px; border-radius:14px; margin-bottom:14px; font-weight:bold; text-align:center;">
+            ⚠️ Attention : ce chiffre (${val} m³) est au moins le double de l'ancien index (${item.data.last_index} m³).<br>Vérifiez bien le compteur avant de valider !
+        </div>
+    ` : '';
+
     openModal(`
         <div class="modal-content">
             <h3 class="modal-title">🔍 Confirmer le relevé</h3>
             <p style="text-align:center; color:var(--text-primary); margin-bottom:10px; font-weight:bold;">
                 ${escapeHtml(item.data.name)}
             </p>
+            ${doubleWarning}
             <div style="background:var(--bg-elevated); padding:16px; border-radius:16px;">
                 <div class="rep-row"><span>Nouvel Index:</span><b style="color:var(--accent);">${val} m³</b></div>
                 <div class="rep-row"><span>Consommation:</span><b>${conso.toFixed(1)} m³</b></div>
@@ -177,7 +184,17 @@ export async function submitEditReading(key, oldLastIndex) {
         showToast(`⚠️ L'index doit être > ${oldLastIndex} m³`);
         return;
     }
-    
+
+    if (isIndexDoubled(newIndex, oldLastIndex)) {
+        const confirmed = await confirmDialog(
+            '⚠️ Chiffre à vérifier',
+            `Ce chiffre (${newIndex} m³) est au moins le double de l'ancien index (${oldLastIndex} m³). Vérifiez bien le compteur. Confirmer quand même ?`,
+            'Oui, confirmer',
+            'Revoir'
+        );
+        if (!confirmed) return;
+    }
+
     closeModal();
     showToast('⏳ Mise à jour...');
     

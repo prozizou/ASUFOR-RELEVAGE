@@ -7,6 +7,7 @@ import { isDone, hasAnomaly, computeConso, computeApaid } from './utils.js';
 
 export function loadClientsData(agentId) {
     detachListener();
+    renderSkeletons(6);
     loadCachedClients(agentId);
     state.activeQueryRef = db.ref('asufor_db_diandioly').orderByChild('agent_id').equalTo(agentId);
     state.activeCallback = state.activeQueryRef.on('value', 
@@ -109,7 +110,8 @@ function updateProgressStats() {
 function renderNextBatch() {
     const container = document.getElementById('list');
     if (!container) return;
-    
+
+    removeSkeletons();
     const batch = state.filteredClientsCache.slice(state.displayedCount, state.displayedCount + PAGE_SIZE);
     for (const item of batch) {
         container.appendChild(createCard(item.key, item.data));
@@ -133,11 +135,39 @@ function setupInfiniteScroll() {
     state.observer = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && !state.isLoadingMore && state.displayedCount < state.filteredClientsCache.length) {
             state.isLoadingMore = true;
-            setTimeout(() => { renderNextBatch(); }, 150);
+            renderSkeletons(3);
+            setTimeout(() => { renderNextBatch(); }, 300);
         }
     }, { rootMargin: '200px' });
-    
+
     if (sentinel) state.observer.observe(sentinel);
+}
+
+function renderSkeletons(count) {
+    const container = document.getElementById('list');
+    if (!container) return;
+    removeSkeletons();
+    const wrapper = document.createElement('div');
+    wrapper.id = 'list-skeletons';
+    for (let i = 0; i < count; i++) {
+        wrapper.appendChild(createSkeletonCard());
+    }
+    container.appendChild(wrapper);
+}
+
+function removeSkeletons() {
+    document.getElementById('list-skeletons')?.remove();
+}
+
+function createSkeletonCard() {
+    const card = document.createElement('div');
+    card.className = 'card skeleton-card';
+    card.innerHTML = `
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-sub"></div>
+        <div class="skeleton-block"></div>
+    `;
+    return card;
 }
 
 function createCard(key, data) {

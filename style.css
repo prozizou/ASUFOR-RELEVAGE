@@ -178,6 +178,27 @@ body {
 
 .btn-photo { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); flex-shrink: 0; }
 
+/* ====== CHARGEMENT PROGRESSIF (SHIMMER) ====== */
+.skeleton-card { pointer-events: none; }
+.skeleton-line, .skeleton-block {
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 37%, var(--bg-elevated) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 8px;
+}
+.skeleton-title { height: 18px; width: 55%; margin-bottom: 10px; }
+.skeleton-sub { height: 12px; width: 35%; margin-bottom: 14px; }
+.skeleton-block { height: 60px; width: 100%; border-radius: 16px; }
+
+@keyframes shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-line, .skeleton-block { animation: none; }
+}
+
 /* ====== FOOTER ====== */
 .footer {
     position: fixed;

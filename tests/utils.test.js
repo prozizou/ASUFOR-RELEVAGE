@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isDone, hasAnomaly, computeConso, computeApaid } from '../JS/utils.js';
+import { isDone, hasAnomaly, computeConso, computeApaid, isIndexDoubled } from '../JS/utils.js';
 
 describe('isDone', () => {
     it('returns true for boolean true', () => {
@@ -57,5 +57,27 @@ describe('computeApaid', () => {
 
     it('accepts a custom price per m3', () => {
         expect(computeApaid(10, 300)).toBe(3000);
+    });
+});
+
+describe('isIndexDoubled', () => {
+    it('returns true when the new index is at least double the last index', () => {
+        expect(isIndexDoubled(200, 100)).toBe(true);
+        expect(isIndexDoubled(201, 100)).toBe(true);
+    });
+
+    it('returns false when the new index is less than double the last index', () => {
+        expect(isIndexDoubled(199, 100)).toBe(false);
+        expect(isIndexDoubled(150, 100)).toBe(false);
+    });
+
+    it('returns false when the last index is 0 or missing (nothing to compare against)', () => {
+        expect(isIndexDoubled(500, 0)).toBe(false);
+        expect(isIndexDoubled(500, undefined)).toBe(false);
+        expect(isIndexDoubled(500, null)).toBe(false);
+    });
+
+    it('coerces numeric strings', () => {
+        expect(isIndexDoubled('200', '100')).toBe(true);
     });
 });

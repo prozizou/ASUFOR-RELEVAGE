@@ -1,7 +1,7 @@
 // ==================== IMPORTS ====================
 import { APP_VERSION, firebaseConfig } from './config.js';
 import { state } from './state.js';
-import { loadTheme, toggleTheme, closeModal, handleOverlayClick, showToast } from './ui.js';
+import { closeModal, handleOverlayClick, showToast } from './ui.js';
 import { handleOnline, handleOffline, syncPendingWrites } from './sync.js';
 import { login, enterApp, confirmLogout, executeLogout } from './auth.js';
 import { takePhoto, stopCamera, captureImage, retakePhoto, confirmPhotoAndIndex } from './media.js';
@@ -18,7 +18,6 @@ export const db = firebase.database();
 async function initializeApp() {
     console.log(`🚀 Initialisation ASUFOR Diandioly v${APP_VERSION} (Modulaire)`);
 
-    loadTheme();
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
@@ -71,7 +70,6 @@ window.login = login;
 window.confirmLogout = confirmLogout;
 window.executeLogout = executeLogout;
 
-window.toggleTheme = toggleTheme;
 window.closeModal = closeModal;
 window.handleOverlayClick = handleOverlayClick;
 window.setFilter = setFilter;

@@ -63,7 +63,7 @@ export async function syncPendingWrites() {
     await setSyncMetadata('lastSync', Date.now());
     
     if (remaining.length === 0) {
-        showToast('✅ Toutes les données sont synchronisées !', 2000);
+        showToast('✅ Toutes les données ont été envoyées !', 2000);
     }
 }
 
@@ -73,7 +73,7 @@ export function updateSyncIndicator(count) {
         if (count > 0) {
             indicator.textContent = `⏳ ${count}`;
             indicator.classList.remove('hidden');
-            indicator.title = `${count} opération(s) en attente`;
+            indicator.title = `${count} élément(s) en attente d'envoi`;
         } else {
             indicator.classList.add('hidden');
         }
@@ -83,7 +83,7 @@ export function updateSyncIndicator(count) {
 export function handleOnline() {
     console.log('🌐 Connexion rétablie');
     updateOnlineStatus();
-    showToast('📡 Connexion rétablie - Synchronisation en cours...', 3000);
+    showToast('📡 Connexion internet retrouvée - Envoi des données en cours...', 3000);
     
     if (state.networkStatusDebounce) clearTimeout(state.networkStatusDebounce);
     state.networkStatusDebounce = setTimeout(() => {
@@ -95,5 +95,5 @@ export function handleOnline() {
 export function handleOffline() {
     console.log('📴 Mode hors ligne activé');
     updateOnlineStatus();
-    showToast('📴 Mode hors ligne - Les données seront synchronisées automatiquement', 4000);
+    showToast('📴 Pas de connexion internet - Vos données seront envoyées automatiquement au retour du réseau', 4000);
 }

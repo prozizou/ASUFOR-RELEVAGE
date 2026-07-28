@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { openModal, closeModal, showToast } from './ui.js';
 import { APP_VERSION } from './config.js';
-import { isDone, computeConso } from './utils.js';
+import { isDone, computeConso, computeApaid } from './utils.js';
 
 export function showReport() {
     if (!state.currentAgentId || !state.clientsCache.length) {
@@ -15,9 +15,9 @@ export function showReport() {
     for (const { data } of state.clientsCache) {
         if (isDone(data)) {
             done++;
-            const conso = computeConso(data);
-            volume += Math.max(0, conso);
-            recette += Number(data.apaid) || 0;
+            const conso = Math.max(0, computeConso(data));
+            volume += conso;
+            recette += computeApaid(conso);
         }
         if (data.audio_url || data.note) anomalies++;
         if (data.photo_url) photos++;
@@ -52,9 +52,9 @@ export async function shareReport() {
     for (const { data } of state.clientsCache) {
         if (isDone(data)) {
             done++;
-            const conso = computeConso(data);
-            volume += Math.max(0, conso);
-            recette += Number(data.apaid) || 0;
+            const conso = Math.max(0, computeConso(data));
+            volume += conso;
+            recette += computeApaid(conso);
         }
     }
 

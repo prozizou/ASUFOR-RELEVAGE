@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { openModal, closeModal, showToast } from './ui.js';
 import { APP_VERSION } from './config.js';
+import { isDone, computeConso } from './utils.js';
 
 export function showReport() {
     if (!state.currentAgentId || !state.clientsCache.length) {
@@ -12,9 +13,9 @@ export function showReport() {
     let done = 0, volume = 0, recette = 0, anomalies = 0, photos = 0;
     
     for (const { data } of state.clientsCache) {
-        if (data.statut === true || data.statut === "true") {
+        if (isDone(data)) {
             done++;
-            const conso = (Number(data.new_index) || 0) - (Number(data.last_index) || 0);
+            const conso = computeConso(data);
             volume += Math.max(0, conso);
             recette += Number(data.apaid) || 0;
         }
@@ -49,14 +50,14 @@ export async function shareReport() {
     let done = 0, volume = 0, recette = 0;
     
     for (const { data } of state.clientsCache) {
-        if (data.statut === true || data.statut === "true") {
+        if (isDone(data)) {
             done++;
-            const conso = (Number(data.new_index) || 0) - (Number(data.last_index) || 0);
+            const conso = computeConso(data);
             volume += Math.max(0, conso);
             recette += Number(data.apaid) || 0;
         }
     }
-    
+
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     const date = new Date().toLocaleDateString('fr-FR');
     const agent = localStorage.getItem('agent_name') || 'Agent';

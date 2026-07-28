@@ -1,0 +1,22 @@
+{
+    "name": "asufor-relevage",
+    "version": "13.0.0",
+    "private": true,
+    "description": "PWA de relevé de compteurs d'eau pour ASUFOR Diandioly",
+    "type": "module",
+    "scripts": {
+        "sync-version": "node scripts/sync-version.js",
+        "version": "npm run sync-version && git add JS/config.js sw.js index.html",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "vitest run"
+    },
+    "devDependencies": {
+        "eslint": "^9.39.5",
+        "globals": "^15.15.0",
+        "prettier": "^3.9.6",
+        "vitest": "^3.2.7"
+    },
+    "license": "UNLICENSED"
+}

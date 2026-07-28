@@ -14,6 +14,7 @@ export const state = {
     currentPhotoMode: 'index',
     cameraStream: null,
     currentPhotoBlob: null,
+    currentPhotoObjectUrl: null,
     tesseractLoaded: false,
     
     mediaRecorder: null,

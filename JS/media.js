@@ -57,7 +57,15 @@ export function stopCamera() {
         state.cameraStream.getTracks().forEach(track => track.stop());
         state.cameraStream = null;
     }
+    releasePhotoObjectUrl();
     document.getElementById('camera-modal').classList.add('hidden');
+}
+
+export function releasePhotoObjectUrl() {
+    if (state.currentPhotoObjectUrl) {
+        URL.revokeObjectURL(state.currentPhotoObjectUrl);
+        state.currentPhotoObjectUrl = null;
+    }
 }
 
 export function retakePhoto() {
@@ -73,9 +81,11 @@ export async function captureImage() {
 
     const blob = await new Promise(resolve => fullCanvas.toBlob(resolve, 'image/jpeg', 0.90));
     state.currentPhotoBlob = blob;
-    
+
     // Étape de PRÉVISUALISATION : on affiche l'image figée pour que l'agent vérifie
-    document.getElementById('preview-img').src = URL.createObjectURL(blob);
+    releasePhotoObjectUrl();
+    state.currentPhotoObjectUrl = URL.createObjectURL(blob);
+    document.getElementById('preview-img').src = state.currentPhotoObjectUrl;
     
     document.getElementById('camera-live-view').classList.add('hidden');
     document.getElementById('camera-preview-view').classList.remove('hidden');
@@ -136,8 +146,9 @@ export async function confirmPhotoAndIndex() {
         } else {
             showToast('✅ Photo envoyée à l\'administration !');
         }
+        releasePhotoObjectUrl();
         document.getElementById('camera-modal').classList.add('hidden');
-        
+
         // 3. Si mode index et index détecté, on l'affiche sur la carte
         if (mode === 'index' && val) {
             const indexSpan = document.getElementById(`indexValue_${key}`);

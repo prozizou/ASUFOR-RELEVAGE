@@ -3,6 +3,7 @@ import { db } from './main.js';
 import { state } from './state.js';
 import { PAGE_SIZE, VERY_HIGH_CONSO_THRESHOLD, HIGH_CONSO_THRESHOLD } from './config.js';
 import { escapeHtml } from './ui.js';
+import { isDone, hasAnomaly, computeConso } from './utils.js';
 
 export function loadClientsData(agentId) {
     detachListener();
@@ -70,12 +71,12 @@ function applyFiltersAndReset() {
     const searchTerm = (document.getElementById('search')?.value || '').toLowerCase().trim();
     state.filteredClientsCache = state.clientsCache.filter(item => {
         const { data } = item;
-        const isDone = data.statut === true || data.statut === "true";
-        const hasAnomaly = !!(data.note && data.note.trim());
-        
-        if (state.currentFilter === 'done' && !isDone) return false;
-        if (state.currentFilter === 'pending' && isDone) return false;
-        if (state.currentFilter === 'anomaly' && !hasAnomaly) return false;
+        const done = isDone(data);
+        const anomaly = hasAnomaly(data);
+
+        if (state.currentFilter === 'done' && !done) return false;
+        if (state.currentFilter === 'pending' && done) return false;
+        if (state.currentFilter === 'anomaly' && !anomaly) return false;
         
         const searchStr = ((data.name || '') + ' ' + (data.numero_compteur || '')).toLowerCase();
         return !searchTerm || searchStr.includes(searchTerm);
@@ -89,7 +90,7 @@ function applyFiltersAndReset() {
 
 function updateProgressStats() {
     const total = state.clientsCache.length;
-    const done = state.clientsCache.filter(c => c.data.statut === true || c.data.statut === "true").length;
+    const done = state.clientsCache.filter(c => isDone(c.data)).length;
     
     const countDoneEl = document.getElementById('count-done');
     if (countDoneEl) countDoneEl.textContent = done;
@@ -140,23 +141,23 @@ function setupInfiniteScroll() {
 }
 
 function createCard(key, data) {
-    const isDone = data.statut === true || data.statut === "true";
-    const hasAnomaly = !!(data.note && data.note.trim());
+    const done = isDone(data);
+    const anomaly = hasAnomaly(data);
     const card = document.createElement('div');
-    card.className = 'card' + (isDone ? ' done' : '');
+    card.className = 'card' + (done ? ' done' : '');
     card.id = 'card_' + key;
 
     // Bouton de suppression global (uniquement si anomalie ou photo)
-    const deleteBtn = (hasAnomaly || data.photo_url) ? 
+    const deleteBtn = (anomaly || data.photo_url) ?
         `<button class="btn-photo" onclick="deleteAnomaly('${key}')" style="background:var(--danger); border-color:var(--danger); margin-left:8px; width:32px; height:32px; flex-shrink:0;">🗑️</button>` : '';
 
     let contentHtml = '';
 
-    if (isDone) {
-        const conso = (Number(data.new_index) || 0) - (Number(data.last_index) || 0);
+    if (done) {
+        const conso = computeConso(data);
         const consoClass = conso > VERY_HIGH_CONSO_THRESHOLD ? 'high' : (conso > HIGH_CONSO_THRESHOLD ? 'medium' : 'normal');
 
-        const anomalyBadge = hasAnomaly ? `<div class="anomaly-badge" style="margin-bottom:8px;">⚠️ Anomalie signalée</div>` : '';
+        const anomalyBadge = anomaly ? `<div class="anomaly-badge" style="margin-bottom:8px;">⚠️ Anomalie signalée</div>` : '';
         const photoBadge = data.photo_url ? `<div class="anomaly-badge" style="background:var(--success-bg); color:var(--success); margin-bottom:8px;">✅ Photo jointe</div>` : '';
 
         contentHtml = `
@@ -167,7 +168,7 @@ function createCard(key, data) {
             <button class="btn-edit" onclick="editReading('${key}')" style="margin-top:10px; width:100%;">✏️ Modifier l'index</button>
         `;
     } else {
-        if (hasAnomaly) {
+        if (anomaly) {
             // Signalement actif : on affiche le bouton pour prendre/reprendre la photo
             const photoStatus = data.photo_url ? '✅ Photo enregistrée' : '📸 PRENDRE LA PHOTO';
             const btnColor = data.photo_url ? 'var(--success)' : 'var(--danger)';

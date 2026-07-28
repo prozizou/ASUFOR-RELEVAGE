@@ -4,8 +4,9 @@ import { state } from './state.js';
 import { showToast, openModal, closeModal, escapeHtml } from './ui.js';
 import { addPendingWrite } from './offlineDb.js';
 import { syncPendingWrites } from './sync.js';
-import { PRICE_PER_M3, VERY_HIGH_CONSO_THRESHOLD } from './config.js';
+import { VERY_HIGH_CONSO_THRESHOLD } from './config.js';
 import { takePhoto } from './media.js';
+import { computeConso, computeApaid } from './utils.js';
 
 export function openKeypad(key, last) {
     openModal(`
@@ -75,8 +76,8 @@ export async function confirmReading(key) {
     const item = state.clientsCache.find(c => c.key === key);
     if (!item) return;
     
-    const conso = val - Number(item.data.last_index);
-    const apaid = Math.round(conso * PRICE_PER_M3);
+    const conso = computeConso({ new_index: val, last_index: item.data.last_index });
+    const apaid = computeApaid(conso);
     
     const consoWarning = conso > VERY_HIGH_CONSO_THRESHOLD ? 
         `<p style="color:var(--danger); margin-top:10px;">⚠️ Consommation anormalement élevée !</p>` : '';
@@ -180,7 +181,7 @@ export async function submitEditReading(key, oldLastIndex) {
     closeModal();
     showToast('⏳ Mise à jour...');
     
-    const apaid = Math.round((newIndex - oldLastIndex) * PRICE_PER_M3);
+    const apaid = computeApaid(computeConso({ new_index: newIndex, last_index: oldLastIndex }));
     const updateData = {
         new_index: newIndex,
         apaid: apaid,

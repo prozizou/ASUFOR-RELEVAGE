@@ -6,7 +6,7 @@ import { handleOnline, handleOffline, syncPendingWrites } from './sync.js';
 import { login, enterApp, confirmLogout, executeLogout } from './auth.js';
 import { takePhoto, stopCamera, captureImage, retakePhoto, confirmPhotoAndIndex } from './media.js';
 import { openKeypad, keypadInput, validateKeypad, confirmReading, submitReading, editReading, submitEditReading, reportWithPhoto, deleteAnomaly } from './actions.js';
-import { setFilter, navigateClient, applyFilters } from './clients.js';
+import { setFilter, applyFilters } from './clients.js';
 import { showReport, shareReport } from './reports.js';
 import { createPwaBanner } from './pwa.js';
 
@@ -73,7 +73,6 @@ window.executeLogout = executeLogout;
 window.closeModal = closeModal;
 window.handleOverlayClick = handleOverlayClick;
 window.setFilter = setFilter;
-window.navigateClient = navigateClient;
 window.applyFilters = applyFilters;
 
 window.openKeypad = openKeypad;

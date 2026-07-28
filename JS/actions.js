@@ -248,21 +248,8 @@ export function confirmDialog(title, message, confirmText = 'Oui', cancelText = 
 // === NOUVELLES FONCTIONS DE SIGNALEMENT ===
 
 export async function reportWithPhoto(key) {
-    const updateData = { 
-        note: "Anomalie signalée", 
-        anomaly_date: Date.now(), 
-        last_modified: Date.now() 
-    };
-    
-    try {
-        if (navigator.onLine) {
-            await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
-        } else {
-            await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
-        }
-    } catch (e) { console.error("Erreur marquage anomalie:", e); }
-
-    // Ouvre la caméra en mode signalement (sans OCR)
+    // L'anomalie n'est enregistrée qu'une fois la photo prise et confirmée
+    // (voir confirmPhotoAndIndex en mode 'signalement'), pas dès ce clic.
     takePhoto(key, 'signalement');
 }
 

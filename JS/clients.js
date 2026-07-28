@@ -85,7 +85,6 @@ function applyFiltersAndReset() {
     
     renderNextBatch();
     updateProgressStats();
-    updatePositionDisplay();
     setTimeout(() => { setupInfiniteScroll(); }, 100);
 }
 
@@ -246,31 +245,6 @@ function createCard(key, data) {
         ${contentHtml}
     `;
     return card;
-}
-
-export function navigateClient(dir) {
-    if (!state.filteredClientsCache.length) return;
-    
-    state.currentClientIndex = Math.max(0, Math.min(
-        state.filteredClientsCache.length - 1,
-        state.currentClientIndex + dir
-    ));
-    
-    const key = state.filteredClientsCache[state.currentClientIndex].key;
-    const card = document.getElementById(`card_${key}`);
-    
-    if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.style.transition = 'box-shadow 0.3s';
-        card.style.boxShadow = '0 0 20px var(--accent-glow)';
-        setTimeout(() => { card.style.boxShadow = ''; }, 1000);
-    }
-    updatePositionDisplay();
-}
-
-function updatePositionDisplay() {
-    const position = document.getElementById('client-position');
-    if (position) position.textContent = `${state.currentClientIndex + 1} / ${state.filteredClientsCache.length}`;
 }
 
 export function setFilter(filter, button) {

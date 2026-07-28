@@ -69,17 +69,14 @@ export function releasePhotoObjectUrl() {
 }
 
 export function retakePhoto() {
-    if (state.currentPhotoKey) takePhoto(state.currentPhotoKey);
+    if (state.currentPhotoKey) takePhoto(state.currentPhotoKey, state.currentPhotoMode);
 }
 
 export async function captureImage() {
     const video = document.getElementById('camera-video');
-    const fullCanvas = document.createElement('canvas');
-    fullCanvas.width = video.videoWidth;
-    fullCanvas.height = video.videoHeight;
-    fullCanvas.getContext('2d').drawImage(video, 0, 0);
+    const cropCanvas = cropToMeterFrame(video);
 
-    const blob = await new Promise(resolve => fullCanvas.toBlob(resolve, 'image/jpeg', 0.90));
+    const blob = await new Promise(resolve => cropCanvas.toBlob(resolve, 'image/jpeg', 0.90));
     state.currentPhotoBlob = blob;
 
     // Étape de PRÉVISUALISATION : on affiche l'image figée pour que l'agent vérifie
@@ -98,10 +95,49 @@ export async function captureImage() {
     }
     
     if (state.currentPhotoMode !== 'signalement') {
-        analyzeImageForOCR(fullCanvas);
+        analyzeImageForOCR(cropCanvas);
     } else {
         document.getElementById('ocr-status').textContent = '';
     }
+}
+
+// Ne garde que la zone du cadran (cadre-guide affiché à l'écran), pas toute la scène.
+const METER_FRAME_OUTPUT_SIZE = 640;
+
+function cropToMeterFrame(video) {
+    const frame = document.querySelector('.meter-frame');
+    const videoRect = video.getBoundingClientRect();
+    const frameRect = frame ? frame.getBoundingClientRect() : null;
+
+    const cropCanvas = document.createElement('canvas');
+    cropCanvas.width = METER_FRAME_OUTPUT_SIZE;
+    cropCanvas.height = METER_FRAME_OUTPUT_SIZE;
+    const ctx = cropCanvas.getContext('2d');
+
+    if (!frameRect || !videoRect.width || !videoRect.height) {
+        // Repli : pas de cadre détecté, on garde l'image complète.
+        cropCanvas.width = video.videoWidth;
+        cropCanvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        return cropCanvas;
+    }
+
+    // #camera-video est en object-fit:cover : la vidéo source est agrandie pour
+    // couvrir tout le cadre affiché, puis rognée au centre. On calcule ce facteur
+    // pour retrouver, dans la vidéo source, la zone correspondant au cadre-guide.
+    const scale = Math.max(videoRect.width / video.videoWidth, videoRect.height / video.videoHeight);
+    const renderedWidth = video.videoWidth * scale;
+    const renderedHeight = video.videoHeight * scale;
+    const overflowX = (renderedWidth - videoRect.width) / 2;
+    const overflowY = (renderedHeight - videoRect.height) / 2;
+
+    const sx = (frameRect.left - videoRect.left + overflowX) / scale;
+    const sy = (frameRect.top - videoRect.top + overflowY) / scale;
+    const sWidth = frameRect.width / scale;
+    const sHeight = frameRect.height / scale;
+
+    ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, METER_FRAME_OUTPUT_SIZE, METER_FRAME_OUTPUT_SIZE);
+    return cropCanvas;
 }
 
 async function analyzeImageForOCR(canvas) {
@@ -137,7 +173,12 @@ export async function confirmPhotoAndIndex() {
         const data = await res.json();
         
         // 2. Sauvegarde dans Firebase
+        // L'anomalie n'est prise en compte qu'à ce stade (photo confirmée), pas dès le clic sur SIGNALEMENT.
         const updateData = { photo_url: data.secure_url, last_modified: Date.now() };
+        if (mode === 'signalement') {
+            updateData.note = 'Anomalie signalée';
+            updateData.anomaly_date = Date.now();
+        }
         if (navigator.onLine) await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
         else await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
 

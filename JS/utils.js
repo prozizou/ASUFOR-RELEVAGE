@@ -16,3 +16,9 @@ export function computeConso(data) {
 export function computeApaid(conso, pricePerM3 = PRICE_PER_M3) {
     return Math.round(conso * pricePerM3);
 }
+
+export function isIndexDoubled(newIndex, lastIndex) {
+    const last = Number(lastIndex) || 0;
+    if (last <= 0) return false;
+    return Number(newIndex) >= 2 * last;
+}

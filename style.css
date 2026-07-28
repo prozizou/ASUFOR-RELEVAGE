@@ -178,6 +178,27 @@ body {
 
 .btn-photo { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); flex-shrink: 0; }
 
+/* ====== CHARGEMENT PROGRESSIF (SHIMMER) ====== */
+.skeleton-card { pointer-events: none; }
+.skeleton-line, .skeleton-block {
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 37%, var(--bg-elevated) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 8px;
+}
+.skeleton-title { height: 18px; width: 55%; margin-bottom: 10px; }
+.skeleton-sub { height: 12px; width: 35%; margin-bottom: 14px; }
+.skeleton-block { height: 60px; width: 100%; border-radius: 16px; }
+
+@keyframes shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-line, .skeleton-block { animation: none; }
+}
+
 /* ====== FOOTER ====== */
 .footer {
     position: fixed;
@@ -274,11 +295,6 @@ body {
 .hidden { display: none !important; }
 .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--bg-elevated); padding: 12px 24px; border-radius: 40px; opacity: 0; transition: 0.3s; z-index: 3000; pointer-events: none; border: 1px solid var(--border);}
 .toast.show { opacity: 1; }
-
-/* ====== NAVIGATION PRÉCÉDENT/SUIVANT ====== */
-.nav-buttons { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 16px; background: var(--bg-app); border-top: 1px solid var(--border); margin-top: 8px; }
-.nav-btn { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); padding: 12px 24px; border-radius: 40px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-#client-position { font-size: 1rem; color: var(--text-secondary); min-width: 80px; text-align: center; }
 
 /* ====== CAMÉRA INTÉGRÉE (LIVE + RÉVISION) ===== */
 #camera-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; }

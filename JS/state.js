@@ -8,8 +8,7 @@ export const state = {
     displayedCount: 0,
     observer: null,
     isLoadingMore: false,
-    currentClientIndex: 0,
-    
+
     currentPhotoKey: null,
     currentPhotoMode: 'index',
     cameraStream: null,

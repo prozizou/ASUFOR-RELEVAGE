@@ -7,6 +7,7 @@ import { isDone, hasAnomaly, computeConso, computeApaid } from './utils.js';
 
 export function loadClientsData(agentId) {
     detachListener();
+    renderSkeletons(6);
     loadCachedClients(agentId);
     state.activeQueryRef = db.ref('asufor_db_diandioly').orderByChild('agent_id').equalTo(agentId);
     state.activeCallback = state.activeQueryRef.on('value', 
@@ -84,7 +85,6 @@ function applyFiltersAndReset() {
     
     renderNextBatch();
     updateProgressStats();
-    updatePositionDisplay();
     setTimeout(() => { setupInfiniteScroll(); }, 100);
 }
 
@@ -109,7 +109,8 @@ function updateProgressStats() {
 function renderNextBatch() {
     const container = document.getElementById('list');
     if (!container) return;
-    
+
+    removeSkeletons();
     const batch = state.filteredClientsCache.slice(state.displayedCount, state.displayedCount + PAGE_SIZE);
     for (const item of batch) {
         container.appendChild(createCard(item.key, item.data));
@@ -133,11 +134,39 @@ function setupInfiniteScroll() {
     state.observer = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && !state.isLoadingMore && state.displayedCount < state.filteredClientsCache.length) {
             state.isLoadingMore = true;
-            setTimeout(() => { renderNextBatch(); }, 150);
+            renderSkeletons(3);
+            setTimeout(() => { renderNextBatch(); }, 300);
         }
     }, { rootMargin: '200px' });
-    
+
     if (sentinel) state.observer.observe(sentinel);
+}
+
+function renderSkeletons(count) {
+    const container = document.getElementById('list');
+    if (!container) return;
+    removeSkeletons();
+    const wrapper = document.createElement('div');
+    wrapper.id = 'list-skeletons';
+    for (let i = 0; i < count; i++) {
+        wrapper.appendChild(createSkeletonCard());
+    }
+    container.appendChild(wrapper);
+}
+
+function removeSkeletons() {
+    document.getElementById('list-skeletons')?.remove();
+}
+
+function createSkeletonCard() {
+    const card = document.createElement('div');
+    card.className = 'card skeleton-card';
+    card.innerHTML = `
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-sub"></div>
+        <div class="skeleton-block"></div>
+    `;
+    return card;
 }
 
 function createCard(key, data) {
@@ -216,31 +245,6 @@ function createCard(key, data) {
         ${contentHtml}
     `;
     return card;
-}
-
-export function navigateClient(dir) {
-    if (!state.filteredClientsCache.length) return;
-    
-    state.currentClientIndex = Math.max(0, Math.min(
-        state.filteredClientsCache.length - 1,
-        state.currentClientIndex + dir
-    ));
-    
-    const key = state.filteredClientsCache[state.currentClientIndex].key;
-    const card = document.getElementById(`card_${key}`);
-    
-    if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.style.transition = 'box-shadow 0.3s';
-        card.style.boxShadow = '0 0 20px var(--accent-glow)';
-        setTimeout(() => { card.style.boxShadow = ''; }, 1000);
-    }
-    updatePositionDisplay();
-}
-
-function updatePositionDisplay() {
-    const position = document.getElementById('client-position');
-    if (position) position.textContent = `${state.currentClientIndex + 1} / ${state.filteredClientsCache.length}`;
 }
 
 export function setFilter(filter, button) {

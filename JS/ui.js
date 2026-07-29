@@ -31,7 +31,9 @@ export function updateOnlineStatus() {
     }
     
     // Mettre à jour le titre de la page
-    document.title = navigator.onLine ? '💧 ASUFOR Diandioly' : '📴 ASUFOR (Hors ligne)';
+    const siege = localStorage.getItem('agent_siege');
+    const label = siege ? `ASUFOR ${siege}` : 'ASUFOR';
+    document.title = navigator.onLine ? `💧 ${label}` : '📴 ASUFOR (Hors ligne)';
 }
 
 export function openModal(html) {

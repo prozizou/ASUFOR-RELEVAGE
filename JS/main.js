@@ -16,7 +16,7 @@ export const db = firebase.database();
 
 // ==================== INITIALISATION DE L'APP ====================
 async function initializeApp() {
-    console.log(`🚀 Initialisation ASUFOR Diandioly v${APP_VERSION} (Modulaire)`);
+    console.log(`🚀 Initialisation ASUFOR Relevage v${APP_VERSION} (Modulaire)`);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -42,7 +42,8 @@ async function initializeApp() {
     }
 
     const savedAgentId = localStorage.getItem('asufor_id');
-    if (savedAgentId) {
+    const savedForageKey = localStorage.getItem('asufor_forage_key');
+    if (savedAgentId && savedForageKey) {
         // ✅ Re-connecter Firebase Auth anonymement si une session locale existe
         try {
             await firebase.auth().signInAnonymously();
@@ -50,6 +51,7 @@ async function initializeApp() {
             console.warn('Auth anonyme (auto-login):', e.message);
         }
         state.currentAgentId = savedAgentId;
+        state.currentForageKey = savedForageKey;
         enterApp(
             localStorage.getItem('agent_name') || 'Agent',
             localStorage.getItem('agent_zone') || 'Zone'

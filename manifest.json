@@ -1,7 +1,7 @@
 {
-  "name": "ASUFOR Diandioly Relevé",
+  "name": "ASUFOR Relevé",
   "short_name": "ASUFOR",
-  "description": "Application de relevé intelligent des compteurs d'eau pour ASUFOR Diandioly",
+  "description": "Application de relevé intelligent des compteurs d'eau pour les sites ASUFOR",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0A0A0C",

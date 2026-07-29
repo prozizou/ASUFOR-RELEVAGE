@@ -4,7 +4,46 @@ import { showToast, escapeHtml, updateOnlineStatus, openModal, closeModal } from
 import { loadClientsData, detachListener } from './clients.js';
 import { syncPendingWrites } from './sync.js';
 import { createPwaBanner } from './pwa.js';
-import { APP_VERSION } from './config.js';
+import { APP_VERSION, firebaseConfig } from './config.js';
+
+const FORAGES_ROOT = 'Asufor';
+
+// Récupère la liste des sites (forageKey) sans télécharger leurs données
+// (compteurs/backup), via un appel REST "shallow" à la Realtime Database.
+async function fetchForageKeys() {
+    try {
+        const token = await firebase.auth().currentUser.getIdToken();
+        const url = `${firebaseConfig.databaseURL}/${FORAGES_ROOT}.json?shallow=true&auth=${token}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        return Object.keys(json || {});
+    } catch (e) {
+        console.warn('Repli sur lecture complète des sites:', e);
+        const snapshot = await firebase.database().ref(FORAGES_ROOT).once('value');
+        return snapshot.exists() ? Object.keys(snapshot.val()) : [];
+    }
+}
+
+// Cherche l'agent correspondant au code sur tous les sites en parallèle.
+async function findAgentByPasscode(code) {
+    const forageKeys = await fetchForageKeys();
+    const db = firebase.database();
+
+    const results = await Promise.all(forageKeys.map(async (forageKey) => {
+        try {
+            const snapshot = await db.ref(`${FORAGES_ROOT}/${forageKey}/agents`)
+                .orderByChild('passcode')
+                .equalTo(code)
+                .once('value');
+            return snapshot.exists() ? { forageKey, snapshot } : null;
+        } catch (e) {
+            console.warn(`Erreur recherche agent sur le site ${forageKey}:`, e);
+            return null;
+        }
+    }));
+
+    return results.find(Boolean) || null;
+}
 
 export async function login() {
     const codeInput = document.getElementById('agent-code');
@@ -29,22 +68,17 @@ export async function login() {
     btn.textContent = 'CONNEXION...';
 
     try {
-        const db = firebase.database();
-
         if (navigator.onLine) {
             // ✅ CORRECTION : Connexion anonyme Firebase AVANT toute requête
             // Sans ça, auth == null et Firebase refuse l'accès (permission_denied)
             await firebase.auth().signInAnonymously();
 
-            const snapshot = await db.ref('db_agents')
-                .orderByChild('passcode')
-                .equalTo(code)
-                .once('value');
+            const match = await findAgentByPasscode(code);
 
-            if (snapshot.exists()) {
+            if (match) {
                 let agentData = null;
                 let agentRealId = null;
-                snapshot.forEach(child => {
+                match.snapshot.forEach(child => {
                     agentRealId = child.key;
                     agentData = child.val();
                 });
@@ -52,9 +86,12 @@ export async function login() {
                 localStorage.setItem('asufor_id', agentRealId);
                 localStorage.setItem('agent_name', agentData.agent || 'Agent');
                 localStorage.setItem('agent_zone', agentData.zone || 'Zone');
+                localStorage.setItem('agent_siege', agentData.siege || '');
                 localStorage.setItem('agent_passcode', code);
+                localStorage.setItem('asufor_forage_key', match.forageKey);
 
                 state.currentAgentId = agentRealId;
+                state.currentForageKey = match.forageKey;
                 enterApp(agentData.agent, agentData.zone);
                 return;
             }
@@ -66,8 +103,10 @@ export async function login() {
 
         // ---- Mode hors ligne : vérification locale ----
         const storedPass = localStorage.getItem('agent_passcode');
-        if (storedPass === code) {
+        const storedForageKey = localStorage.getItem('asufor_forage_key');
+        if (storedPass === code && storedForageKey) {
             state.currentAgentId = localStorage.getItem('asufor_id');
+            state.currentForageKey = storedForageKey;
             enterApp(localStorage.getItem('agent_name'), localStorage.getItem('agent_zone'));
             showToast('📴 Mode hors ligne - Données locales utilisées', 3000);
             return;
@@ -80,9 +119,11 @@ export async function login() {
 
         // Fallback hors ligne si Firebase échoue mais le code est connu localement
         const storedPass = localStorage.getItem('agent_passcode');
-        if (storedPass === code) {
+        const storedForageKey = localStorage.getItem('asufor_forage_key');
+        if (storedPass === code && storedForageKey) {
             try {
                 state.currentAgentId = localStorage.getItem('asufor_id');
+                state.currentForageKey = storedForageKey;
                 enterApp(localStorage.getItem('agent_name'), localStorage.getItem('agent_zone'));
                 showToast('📴 Mode hors ligne', 3000);
             } catch (e) {
@@ -112,7 +153,8 @@ export function enterApp(name, zone) {
     }
 
     createPwaBanner();
-    console.log(`🚀 ASUFOR Diandioly v${APP_VERSION} démarrée`);
+    const siege = localStorage.getItem('agent_siege');
+    console.log(`🚀 ASUFOR ${siege || 'Relevage'} v${APP_VERSION} démarrée`);
 }
 
 export function confirmLogout() {

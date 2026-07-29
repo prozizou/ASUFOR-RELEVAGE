@@ -1,5 +1,6 @@
 export const state = {
     currentAgentId: null,
+    currentForageKey: null,
     activeQueryRef: null,
     activeCallback: null,
     clientsCache: [],
@@ -24,3 +25,11 @@ export const state = {
     pwaBanner: null,
     networkStatusDebounce: null
 };
+
+export function compteursBasePath() {
+    return `Asufor/${state.currentForageKey}/compteurs`;
+}
+
+export function compteurPath(key) {
+    return `${compteursBasePath()}/${key}`;
+}

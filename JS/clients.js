@@ -1,6 +1,6 @@
 // js/clients.js
 import { db } from './main.js';
-import { state } from './state.js';
+import { state, compteursBasePath } from './state.js';
 import { PAGE_SIZE, VERY_HIGH_CONSO_THRESHOLD, HIGH_CONSO_THRESHOLD } from './config.js';
 import { escapeHtml } from './ui.js';
 import { isDone, hasAnomaly, computeConso, computeApaid } from './utils.js';
@@ -9,8 +9,8 @@ export function loadClientsData(agentId) {
     detachListener();
     renderSkeletons(6);
     loadCachedClients(agentId);
-    state.activeQueryRef = db.ref('asufor_db_diandioly').orderByChild('agent_id').equalTo(agentId);
-    state.activeCallback = state.activeQueryRef.on('value', 
+    state.activeQueryRef = db.ref(compteursBasePath()).orderByChild('agent_id').equalTo(agentId);
+    state.activeCallback = state.activeQueryRef.on('value',
         (snapshot) => {
             processSnapshot(snapshot);
             cacheClientsData(agentId, snapshot.val());
@@ -27,16 +27,20 @@ export function detachListener() {
     }
 }
 
+function clientsCacheKey(agentId) {
+    return `clients_cache_${state.currentForageKey}_${agentId}`;
+}
+
 async function cacheClientsData(agentId, data) {
     try {
         const cacheData = { data: data, timestamp: Date.now(), agentId: agentId };
-        localStorage.setItem(`clients_cache_${agentId}`, JSON.stringify(cacheData));
+        localStorage.setItem(clientsCacheKey(agentId), JSON.stringify(cacheData));
     } catch (e) { console.warn('Impossible de mettre en cache les clients:', e); }
 }
 
 function loadCachedClients(agentId) {
     try {
-        const cached = localStorage.getItem(`clients_cache_${agentId}`);
+        const cached = localStorage.getItem(clientsCacheKey(agentId));
         if (cached) {
             const cacheData = JSON.parse(cached);
             if (Date.now() - cacheData.timestamp < 24 * 60 * 60 * 1000) {

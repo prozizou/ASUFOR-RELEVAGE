@@ -1,10 +1,20 @@
-# ASUFOR Diandioly — Relevage
+# ASUFOR Relevage
 
-PWA (Progressive Web App) de relevé de compteurs d'eau pour les agents de terrain de l'ASUFOR Diandioly. Conçue pour fonctionner **hors ligne** dans des zones à connectivité instable, avec synchronisation automatique vers Firebase au retour du réseau.
+PWA (Progressive Web App) de relevé de compteurs d'eau pour les agents de terrain des sites ASUFOR (multi-sites : Diandioly, Ogo, ...). Conçue pour fonctionner **hors ligne** dans des zones à connectivité instable, avec synchronisation automatique vers Firebase au retour du réseau.
+
+## Structure des données Firebase
+
+Les données sont organisées par site sous `Asufor/{forageKey}/` (ex. `Asufor/Asufor_diandioly/`, `Asufor/Asufor_ogo/`) :
+
+- `agents/{agentId}` — agents de terrain (nom, téléphone, zone, code d'accès `passcode`).
+- `compteurs/{compteurId}` — index de compteurs à relever pour ce site (`agent_id`, `name`, `last_index`, `new_index`, `statut`, ...).
+- `config`, `backup/{cycle}`, `team` — configuration du site, sauvegardes de cycle et équipe (non utilisés par cette app de terrain).
+
+Un même agent n'appartient qu'à un seul site. À la connexion, l'app recherche automatiquement dans quel site (`forageKey`) le code à 6 chiffres saisi correspond à un agent dont le numéro de téléphone (`agent_tel`) correspond aussi (voir `findAgentByPasscode` dans `JS/auth.js` — le téléphone lève l'ambiguïté si deux agents de sites différents partagent le même code), puis utilise ce `forageKey` pour toutes les lectures/écritures de compteurs (`JS/state.js#compteurPath`).
 
 ## Fonctionnalités
 
-- Connexion agent par code (6 chiffres), avec repli hors ligne sur les données locales.
+- Connexion agent par numéro de téléphone + code (6 chiffres) — le site est déterminé automatiquement ; le téléphone lève l'ambiguïté quand deux agents (souvent de sites différents) partagent le même code, avec repli hors ligne sur les données locales.
 - Liste des clients filtrable (Tous / En attente / Relevés / Anomalies) et recherche.
 - Saisie de l'index via pavé numérique custom, avec validation (nouvel index > ancien index).
 - Capture photo du compteur avec lecture automatique de l'index par OCR (Tesseract.js), modifiable avant validation.
@@ -89,7 +99,7 @@ npm run sync-version
 
 Les identifiants applicatifs (clé API Firebase publique, cloud name Cloudinary, upload preset) se trouvent dans `JS/config.js` et `JS/media.js`. Ce ne sont **pas des secrets serveur** (la clé API Firebase Web est publique par design), mais la sécurité réelle des données repose sur :
 
-- Les **règles de sécurité Firebase Realtime Database** côté serveur (à configurer dans la console Firebase pour restreindre l'accès à `asufor_db_diandioly` et `db_agents`).
+- Les **règles de sécurité Firebase Realtime Database** côté serveur (à configurer dans la console Firebase pour restreindre l'accès à `Asufor/{forageKey}/agents` et `Asufor/{forageKey}/compteurs`, ainsi que la lecture "shallow" de `Asufor` utilisée pour résoudre le site de l'agent).
 - Le **mode de l'upload preset Cloudinary** (`Forage`) : privilégier un preset *signé* plutôt que *unsigned*.
 
 ⚠️ Voir l'analyse de sécurité du projet pour le détail des recommandations (authentification agent, règles Firebase, upload signé).

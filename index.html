@@ -7,18 +7,19 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=13.1.0">
+    <link rel="stylesheet" href="style.css?v=13.3.0">
     <title>Relevage</title>
 </head>
 <body>
 <div id="app">
     <section id="login-section" class="login-container">
         <div class="logo-icon">💧</div>
-        <h1 class="login-title">ASUFOR Diandioly</h1>
+        <h1 class="login-title">ASUFOR</h1>
         <p class="login-subtitle">Relevage</p>
         
+        <input type="tel" id="agent-phone" class="login-input" placeholder="Numéro de téléphone" inputmode="numeric" maxlength="9" onkeydown="if(event.key==='Enter')login()">
         <input type="number" id="agent-code" class="login-input" placeholder="Code agent" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')login()">
-        <p class="login-hint">Demandez ce code à votre superviseur</p>
+        <p class="login-hint">Demandez votre numéro et votre code à votre superviseur</p>
         <button onclick="login()" id="login-btn" class="login-btn">ACCÉDER À LA TOURNÉE</button>
         <div id="login-error" class="login-error"></div>
     </section>
@@ -115,7 +116,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <!-- ✅ Point d'entrée corrigé : JS/main.js -->
-<script type="module" src="JS/main.js?v=13.1.0"></script>
+<script type="module" src="JS/main.js?v=13.3.0"></script>
 
 </body>
 </html>

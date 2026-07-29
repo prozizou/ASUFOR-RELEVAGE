@@ -2,7 +2,7 @@ export const PRICE_PER_M3 = 250;
 export const HIGH_CONSO_THRESHOLD = 30;
 export const VERY_HIGH_CONSO_THRESHOLD = 60;
 export const PAGE_SIZE = 20;
-export const APP_VERSION = '13.1.0';
+export const APP_VERSION = '13.3.0';
 
 export const firebaseConfig = {
     apiKey: "AIzaSyAKC7lrKSCFwfuoXASvX-yYIGneLXInvDk",

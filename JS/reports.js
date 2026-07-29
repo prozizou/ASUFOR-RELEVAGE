@@ -61,12 +61,14 @@ export async function shareReport() {
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     const date = new Date().toLocaleDateString('fr-FR');
     const agent = localStorage.getItem('agent_name') || 'Agent';
-    
-    const reportText = `📋 RAPPORT ASUFOR DIANDIOLY\n📅 ${date}\n👤 Agent: ${agent}\n📍 Zone: ${localStorage.getItem('agent_zone') || 'N/A'}\n\n📊 Progression: ${done}/${total} clients (${pct}%)\n💧 Volume total: ${volume.toFixed(1)} m³\n💰 Recette: ${recette.toLocaleString('fr-FR')} FCFA\n\n🤖 Généré par ASUFOR Diandioly v${APP_VERSION}`;
+    const siege = localStorage.getItem('agent_siege');
+    const siteLabel = siege ? `ASUFOR ${siege}` : 'ASUFOR';
+
+    const reportText = `📋 RAPPORT ${siteLabel.toUpperCase()}\n📅 ${date}\n👤 Agent: ${agent}\n📍 Zone: ${localStorage.getItem('agent_zone') || 'N/A'}\n\n📊 Progression: ${done}/${total} clients (${pct}%)\n💧 Volume total: ${volume.toFixed(1)} m³\n💰 Recette: ${recette.toLocaleString('fr-FR')} FCFA\n\n🤖 Généré par ${siteLabel} v${APP_VERSION}`;
 
     if (navigator.share) {
         try {
-            await navigator.share({ title: 'Rapport ASUFOR Diandioly', text: reportText });
+            await navigator.share({ title: `Rapport ${siteLabel}`, text: reportText });
         } catch (err) {
             if (err.name !== 'AbortError') console.error('Erreur partage:', err);
         }

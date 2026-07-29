@@ -1,6 +1,6 @@
 // js/actions.js
 import { db } from './main.js';
-import { state } from './state.js';
+import { state, compteurPath } from './state.js';
 import { showToast, openModal, closeModal, escapeHtml } from './ui.js';
 import { addPendingWrite } from './offlineDb.js';
 import { syncPendingWrites } from './sync.js';
@@ -123,10 +123,10 @@ export async function submitReading(key, val, apaid) {
     
     try {
         if (navigator.onLine) {
-            await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
+            await db.ref(compteurPath(key)).update(updateData);
             showToast('✅ Relevé enregistré !', 2000);
         } else {
-            await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
+            await addPendingWrite({ path: compteurPath(key), data: updateData });
             showToast('📴 Sauvegardé localement', 2000);
         }
         
@@ -136,7 +136,7 @@ export async function submitReading(key, val, apaid) {
         
     } catch (err) {
         console.error('Erreur enregistrement:', err);
-        await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
+        await addPendingWrite({ path: compteurPath(key), data: updateData });
         showToast('📴 Sauvegardé localement (erreur réseau)', 3000);
     }
 }
@@ -208,15 +208,15 @@ export async function submitEditReading(key, oldLastIndex) {
     
     try {
         if (navigator.onLine) {
-            await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
+            await db.ref(compteurPath(key)).update(updateData);
             showToast('✅ Modification enregistrée !');
         } else {
-            await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
+            await addPendingWrite({ path: compteurPath(key), data: updateData });
             showToast('📴 Modification sauvegardée localement');
         }
     } catch (err) {
         console.error('Erreur modification:', err);
-        await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
+        await addPendingWrite({ path: compteurPath(key), data: updateData });
         showToast('📴 Sauvegardé localement');
     }
 }
@@ -258,6 +258,6 @@ export async function deleteAnomaly(key) {
     if (!confirm) return;
     
     const updateData = { note: null, photo_url: null, anomaly_date: null, last_modified: Date.now() };
-    if (navigator.onLine) await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
-    else await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
+    if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
+    else await addPendingWrite({ path: compteurPath(key), data: updateData });
 }

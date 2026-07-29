@@ -1,6 +1,6 @@
 // js/media.js
 import { db } from './main.js';
-import { state } from './state.js';
+import { state, compteurPath } from './state.js';
 import { showToast } from './ui.js';
 import { addPendingWrite } from './offlineDb.js';
 
@@ -179,8 +179,8 @@ export async function confirmPhotoAndIndex() {
             updateData.note = 'Anomalie signalée';
             updateData.anomaly_date = Date.now();
         }
-        if (navigator.onLine) await db.ref(`asufor_db_diandioly/${key}`).update(updateData);
-        else await addPendingWrite({ path: `asufor_db_diandioly/${key}`, data: updateData });
+        if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
+        else await addPendingWrite({ path: compteurPath(key), data: updateData });
 
         if (mode === 'signalement') {
             showToast('📤 Signalement envoyé à l\'administration !');

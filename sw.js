@@ -1,7 +1,7 @@
 // ✅ sw.js — placé à la RACINE du projet (même niveau qu'index.html)
 // Les chemins doivent refléter la vraie structure : JS/ pour les scripts, icons/ pour les images
 
-const CACHE_NAME = 'asufor-v13.2.0';
+const CACHE_NAME = 'asufor-v13.3.0';
 
 const urlsToCache = [
   'index.html',

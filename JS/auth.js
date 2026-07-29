@@ -24,8 +24,14 @@ async function fetchForageKeys() {
     }
 }
 
-// Cherche l'agent correspondant au code sur tous les sites en parallèle.
-async function findAgentByPasscode(code) {
+function normalizePhone(value) {
+    return String(value || '').replace(/\D/g, '').replace(/^221/, '');
+}
+
+// Cherche, sur tous les sites en parallèle, l'agent dont le code ET le
+// numéro de téléphone correspondent. Le numéro sert à lever l'ambiguïté
+// quand deux agents (souvent de sites différents) partagent le même code.
+async function findAgentByPasscode(code, phone) {
     const forageKeys = await fetchForageKeys();
     const db = firebase.database();
 
@@ -35,7 +41,16 @@ async function findAgentByPasscode(code) {
                 .orderByChild('passcode')
                 .equalTo(code)
                 .once('value');
-            return snapshot.exists() ? { forageKey, snapshot } : null;
+            if (!snapshot.exists()) return null;
+
+            let match = null;
+            snapshot.forEach(child => {
+                const agentData = child.val();
+                if (normalizePhone(agentData.agent_tel) === phone) {
+                    match = { forageKey, agentId: child.key, agentData };
+                }
+            });
+            return match;
         } catch (e) {
             console.warn(`Erreur recherche agent sur le site ${forageKey}:`, e);
             return null;
@@ -47,9 +62,11 @@ async function findAgentByPasscode(code) {
 
 export async function login() {
     const codeInput = document.getElementById('agent-code');
+    const phoneInput = document.getElementById('agent-phone');
     const errorDiv = document.getElementById('login-error');
     const btn = document.getElementById('login-btn');
     const code = codeInput.value.trim();
+    const phone = normalizePhone(phoneInput.value);
 
     if (errorDiv) {
         errorDiv.textContent = '';
@@ -57,6 +74,11 @@ export async function login() {
         errorDiv.style.marginTop = '12px';
         errorDiv.style.fontWeight = 'bold';
         errorDiv.style.fontSize = '0.9rem';
+    }
+
+    if (phone.length < 9) {
+        errorDiv.textContent = '⚠️ Numéro de téléphone invalide';
+        return;
     }
 
     if (code.length !== 6) {
@@ -73,38 +95,35 @@ export async function login() {
             // Sans ça, auth == null et Firebase refuse l'accès (permission_denied)
             await firebase.auth().signInAnonymously();
 
-            const match = await findAgentByPasscode(code);
+            const match = await findAgentByPasscode(code, phone);
 
             if (match) {
-                let agentData = null;
-                let agentRealId = null;
-                match.snapshot.forEach(child => {
-                    agentRealId = child.key;
-                    agentData = child.val();
-                });
+                const { agentId, agentData } = match;
 
-                localStorage.setItem('asufor_id', agentRealId);
+                localStorage.setItem('asufor_id', agentId);
                 localStorage.setItem('agent_name', agentData.agent || 'Agent');
                 localStorage.setItem('agent_zone', agentData.zone || 'Zone');
                 localStorage.setItem('agent_siege', agentData.siege || '');
                 localStorage.setItem('agent_passcode', code);
+                localStorage.setItem('agent_phone', phone);
                 localStorage.setItem('asufor_forage_key', match.forageKey);
 
-                state.currentAgentId = agentRealId;
+                state.currentAgentId = agentId;
                 state.currentForageKey = match.forageKey;
                 enterApp(agentData.agent, agentData.zone);
                 return;
             }
 
-            // Code inconnu en ligne
-            errorDiv.textContent = '❌ Code agent invalide';
+            // Code et/ou téléphone inconnus en ligne
+            errorDiv.textContent = '❌ Code agent ou numéro de téléphone invalide';
             return;
         }
 
         // ---- Mode hors ligne : vérification locale ----
         const storedPass = localStorage.getItem('agent_passcode');
+        const storedPhone = localStorage.getItem('agent_phone');
         const storedForageKey = localStorage.getItem('asufor_forage_key');
-        if (storedPass === code && storedForageKey) {
+        if (storedPass === code && storedPhone === phone && storedForageKey) {
             state.currentAgentId = localStorage.getItem('asufor_id');
             state.currentForageKey = storedForageKey;
             enterApp(localStorage.getItem('agent_name'), localStorage.getItem('agent_zone'));
@@ -112,15 +131,16 @@ export async function login() {
             return;
         }
 
-        errorDiv.textContent = '❌ Code agent invalide';
+        errorDiv.textContent = '❌ Code agent ou numéro de téléphone invalide';
 
     } catch (err) {
         console.error('Erreur login:', err);
 
-        // Fallback hors ligne si Firebase échoue mais le code est connu localement
+        // Fallback hors ligne si Firebase échoue mais le code/téléphone est connu localement
         const storedPass = localStorage.getItem('agent_passcode');
+        const storedPhone = localStorage.getItem('agent_phone');
         const storedForageKey = localStorage.getItem('asufor_forage_key');
-        if (storedPass === code && storedForageKey) {
+        if (storedPass === code && storedPhone === phone && storedForageKey) {
             try {
                 state.currentAgentId = localStorage.getItem('asufor_id');
                 state.currentForageKey = storedForageKey;

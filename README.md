@@ -10,11 +10,11 @@ Les données sont organisées par site sous `Asufor/{forageKey}/` (ex. `Asufor/A
 - `compteurs/{compteurId}` — index de compteurs à relever pour ce site (`agent_id`, `name`, `last_index`, `new_index`, `statut`, ...).
 - `config`, `backup/{cycle}`, `team` — configuration du site, sauvegardes de cycle et équipe (non utilisés par cette app de terrain).
 
-Un même agent n'appartient qu'à un seul site. À la connexion, l'app recherche automatiquement dans quel site (`forageKey`) le code à 6 chiffres saisi correspond à un agent (voir `findAgentByPasscode` dans `JS/auth.js`), puis utilise ce `forageKey` pour toutes les lectures/écritures de compteurs (`JS/state.js#compteurPath`).
+Un même agent n'appartient qu'à un seul site. À la connexion, l'app recherche automatiquement dans quel site (`forageKey`) le code à 6 chiffres saisi correspond à un agent dont le numéro de téléphone (`agent_tel`) correspond aussi (voir `findAgentByPasscode` dans `JS/auth.js` — le téléphone lève l'ambiguïté si deux agents de sites différents partagent le même code), puis utilise ce `forageKey` pour toutes les lectures/écritures de compteurs (`JS/state.js#compteurPath`).
 
 ## Fonctionnalités
 
-- Connexion agent par code (6 chiffres) — le site est déterminé automatiquement, avec repli hors ligne sur les données locales.
+- Connexion agent par numéro de téléphone + code (6 chiffres) — le site est déterminé automatiquement ; le téléphone lève l'ambiguïté quand deux agents (souvent de sites différents) partagent le même code, avec repli hors ligne sur les données locales.
 - Liste des clients filtrable (Tous / En attente / Relevés / Anomalies) et recherche.
 - Saisie de l'index via pavé numérique custom, avec validation (nouvel index > ancien index).
 - Capture photo du compteur avec lecture automatique de l'index par OCR (Tesseract.js), modifiable avant validation.

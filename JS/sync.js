@@ -12,6 +12,11 @@ export async function syncPendingWrites() {
     
     const pending = await getPendingWrites();
     if (pending.length === 0) {
+        // Rien à envoyer, mais on est en ligne : c'est un point de synchro
+        // valide, à horodater pour l'info « Dernière synchro » (sinon elle
+        // ne s'afficherait jamais pour un agent qui n'a eu aucune écriture
+        // hors ligne à rattraper).
+        await setSyncMetadata('lastSync', Date.now());
         updateSyncIndicator(0);
         return;
     }

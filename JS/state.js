@@ -12,6 +12,8 @@ export const state = {
 
     currentPhotoKey: null,
     currentPhotoMode: 'index',
+    currentAnomalyMotif: null,
+    currentAnomalyComment: '',
     cameraStream: null,
     currentPhotoBlob: null,
     currentPhotoObjectUrl: null,

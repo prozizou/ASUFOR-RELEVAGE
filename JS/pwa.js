@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { APP_VERSION } from './config.js';
 import { showToast } from './ui.js';
+import { icon } from './icons.js';
 
 export function isAppInstalled() {
     return window.matchMedia('(display-mode: standalone)').matches || 
@@ -16,15 +17,15 @@ export function createPwaBanner() {
     state.pwaBanner.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="background: #38bdf8; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">💧</div>
+                <div style="background: #F59E0B; color:#000; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">${icon('smartphone')}</div>
                 <div>
                     <strong style="display: block; font-size: 14px; color: white;">ASUFOR App v${APP_VERSION}</strong>
                     <span style="font-size: 11px; opacity: 0.7; color: white;">Installer pour accès hors ligne</span>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="pwa-install-btn" style="background: #38bdf8; color: #1a1e21; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px;">Installer</button>
-                <button id="pwa-close-btn" style="background: transparent; border: none; color: white; opacity: 0.5; font-size: 16px; cursor: pointer;">✕</button>
+                <button id="pwa-install-btn" style="background: #F59E0B; color: #000; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px;">Installer</button>
+                <button id="pwa-close-btn" style="background: transparent; border: none; color: white; opacity: 0.5; font-size: 16px; cursor: pointer; display:flex;">${icon('close')}</button>
             </div>
         </div>
     `;
@@ -46,11 +47,11 @@ export function createPwaBanner() {
             if (outcome === 'accepted') {
                 localStorage.setItem('pwa_installed', 'true');
                 state.pwaBanner.style.display = 'none';
-                showToast('✅ Application installée !');
+                showToast('Application installée.');
             }
             state.deferredPrompt = null;
         } else {
-            showToast('📱 Appuyez sur "Partager" puis "Sur l\'écran d\'accueil"', 5000);
+            showToast('Appuyez sur "Partager" puis "Sur l\'écran d\'accueil"', 5000);
         }
     });
 
@@ -71,6 +72,6 @@ export function createPwaBanner() {
         if (state.pwaBanner) state.pwaBanner.style.display = 'none';
         state.deferredPrompt = null;
         localStorage.setItem('pwa_installed', 'true');
-        showToast("✅ Application installée avec succès !");
+        showToast("Application installée avec succès.");
     });
 }

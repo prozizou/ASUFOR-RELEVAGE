@@ -5,6 +5,7 @@ import { loadClientsData, detachListener } from './clients.js';
 import { syncPendingWrites } from './sync.js';
 import { createPwaBanner } from './pwa.js';
 import { APP_VERSION, firebaseConfig } from './config.js';
+import { icon } from './icons.js';
 
 const FORAGES_ROOT = 'Asufor';
 
@@ -77,12 +78,12 @@ export async function login() {
     }
 
     if (phone.length < 9) {
-        errorDiv.textContent = '⚠️ Numéro de téléphone invalide';
+        errorDiv.textContent = 'Numéro de téléphone invalide';
         return;
     }
 
     if (code.length !== 6) {
-        errorDiv.textContent = '⚠️ Le code doit contenir 6 chiffres';
+        errorDiv.textContent = 'Le code doit contenir 6 chiffres';
         return;
     }
 
@@ -115,7 +116,7 @@ export async function login() {
             }
 
             // Code et/ou téléphone inconnus en ligne
-            errorDiv.textContent = '❌ Code agent ou numéro de téléphone invalide';
+            errorDiv.textContent = 'Code agent ou numéro de téléphone invalide';
             return;
         }
 
@@ -127,11 +128,11 @@ export async function login() {
             state.currentAgentId = localStorage.getItem('asufor_id');
             state.currentForageKey = storedForageKey;
             enterApp(localStorage.getItem('agent_name'), localStorage.getItem('agent_zone'));
-            showToast('📴 Mode hors ligne - Données locales utilisées', 3000);
+            showToast('Mode hors ligne : données locales utilisées.', 3000);
             return;
         }
 
-        errorDiv.textContent = '❌ Code agent ou numéro de téléphone invalide';
+        errorDiv.textContent = 'Code agent ou numéro de téléphone invalide';
 
     } catch (err) {
         console.error('Erreur login:', err);
@@ -145,12 +146,12 @@ export async function login() {
                 state.currentAgentId = localStorage.getItem('asufor_id');
                 state.currentForageKey = storedForageKey;
                 enterApp(localStorage.getItem('agent_name'), localStorage.getItem('agent_zone'));
-                showToast('📴 Mode hors ligne', 3000);
+                showToast('Mode hors ligne.', 3000);
             } catch (e) {
-                errorDiv.textContent = "⚠️ Erreur de chargement de l'interface : " + e.message;
+                errorDiv.textContent = "Erreur de chargement de l'interface : " + e.message;
             }
         } else {
-            errorDiv.textContent = '📡 Erreur Firebase : ' + err.message;
+            errorDiv.textContent = 'Erreur Firebase : ' + err.message;
         }
     } finally {
         btn.disabled = false;
@@ -174,7 +175,7 @@ export function enterApp(name, zone) {
 
     createPwaBanner();
     const siege = localStorage.getItem('agent_siege');
-    console.log(`🚀 ASUFOR ${siege || 'Relevage'} v${APP_VERSION} démarrée`);
+    console.log(`ASUFOR ${siege || 'Relevage'} v${APP_VERSION} démarrée`);
 }
 
 export function confirmLogout() {
@@ -185,12 +186,12 @@ export function confirmLogout() {
 
     let warningMessage = 'Voulez-vous vraiment quitter votre session ?';
     if (parseInt(pendingCount) > 0) {
-        warningMessage += `\n\n⚠️ ${pendingCount} élément(s) pas encore envoyé(s).`;
+        warningMessage += `\n\n${pendingCount} élément(s) pas encore envoyé(s).`;
     }
 
     openModal(`
         <div class="modal-content" style="text-align:center;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🚪</div>
+            <div style="font-size: 3rem; margin-bottom: 10px; color:var(--text-secondary);">${icon('door-exit', { size: '1em' })}</div>
             <h3 class="modal-title">Déconnexion</h3>
             <p style="color:var(--text-secondary); margin-bottom: 20px; white-space: pre-line;">
                 ${escapeHtml(warningMessage)}

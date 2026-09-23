@@ -35,6 +35,15 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* ====== ICÔNES SVG (voir JS/icons.js) ======
+   Remplace les emojis : rendu identique sur tous les appareils, sans réseau.
+   `currentColor` fait hériter l'icône de la couleur du texte ambiant. */
+.ic {
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex: none;
+}
+
 /* ====== HEADER ====== */
 .header {
     background: var(--bg-card); 
@@ -169,10 +178,19 @@ body {
 .btn-ok { flex: 1; background: var(--accent); border: none; border-radius: 40px; font-weight: 800; color: #000; cursor:pointer;}
 .btn-ok:disabled { opacity: 0.3; }
 
-.anomaly-badge { margin: 8px 0; padding: 8px 12px; border-radius: 12px; background: var(--danger-bg); color: var(--danger); font-size: 0.8rem; word-break: break-word; }
+.anomaly-badge { margin: 8px 0; padding: 8px 12px; border-radius: 12px; background: var(--danger-bg); color: var(--danger); font-size: 0.8rem; word-break: break-word; font-weight: 600; }
 .validated-index { font-size: 1.4rem; font-weight: 800; color: var(--success); background: var(--success-bg); padding: 8px 16px; border-radius: 40px; text-align: center; display: inline-block; }
 .conso-alert { font-size: 0.72rem; padding: 6px 12px; border-radius: 40px; margin-top: 8px; display: inline-block; }
 .conso-alert.normal { background: var(--success-bg); color: var(--success); }
+/* Consommation inhabituelle (seuils HIGH_CONSO_THRESHOLD / VERY_HIGH...) : à
+   vérifier, sans confondre avec une vraie erreur de saisie (--danger réservé
+   à ça ailleurs) — nuance amber intermédiaire puis rouge au-delà. */
+.conso-alert.medium { background: var(--accent-glow); color: #B45309; }
+.conso-alert.high   { background: var(--danger-bg); color: var(--danger); }
+
+/* Libellé explicite (icône + mot) devant une valeur — Index / Consommation /
+   Montant... : distingue le mot du chiffre sans changer de couleur. */
+.field-label { font-weight: 600; opacity: 0.75; margin-right: 4px; }
 
 .btn-edit { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; margin-top: 10px; cursor: pointer;}
 
@@ -218,11 +236,27 @@ body {
     }
 }
 
-.btn-report { flex: 1; background: var(--purple); border: none; border-radius: 60px; font-weight: bold; color: white; cursor: pointer; }
+/* RAPPORT : action secondaire (l'action principale de l'écran est de valider
+   les relevés, sur chaque carte) — neutre, pas d'accent concurrent. */
+.btn-report {
+    flex: 1;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 60px;
+    font-weight: bold;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+/* Déconnexion : neutre également — le rouge reste réservé aux anomalies et
+   aux vraies erreurs, pas à une action de routine comme quitter la session. */
 .btn-logout {
     background: transparent;
-    border: 1px solid var(--danger);
-    color: var(--danger);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     border-radius: 60px;
     padding: 12px 18px;
     display: flex;
@@ -232,7 +266,7 @@ body {
     transition: background 0.1s;
     cursor: pointer;
 }
-.btn-logout:active { background: var(--danger-bg); }
+.btn-logout:active { background: var(--bg-elevated); }
 
 /* ====== MODALS ====== */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; animation: fadeIn 0.15s ease; }
@@ -284,7 +318,7 @@ body {
 
 /* ====== LOGIN ====== */
 .login-container { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-app); padding: 20px; }
-.logo-icon { font-size: 3.5rem; margin-bottom: 10px; }
+.logo-icon { font-size: 3.5rem; margin-bottom: 10px; color: var(--accent); }
 .login-title { color: var(--accent); font-size: 1.4rem; margin-bottom: 6px; text-align: center; }
 .login-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 28px; }
 .login-input { width: 100%; max-width: 300px; padding: 16px; border-radius: 60px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); text-align: center; font-size: 1.2rem; }

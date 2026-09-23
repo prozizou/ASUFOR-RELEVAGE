@@ -4,6 +4,7 @@ import { state, compteursBasePath } from './state.js';
 import { PAGE_SIZE, VERY_HIGH_CONSO_THRESHOLD, HIGH_CONSO_THRESHOLD } from './config.js';
 import { escapeHtml } from './ui.js';
 import { isDone, hasAnomaly, computeConso, computeApaid } from './utils.js';
+import { icon } from './icons.js';
 
 export function loadClientsData(agentId) {
     detachListener();
@@ -182,7 +183,16 @@ function createCard(key, data) {
 
     // Bouton de suppression global (uniquement si anomalie ou photo)
     const deleteBtn = (anomaly || data.photo_url) ?
-        `<button class="btn-photo" onclick="deleteAnomaly('${key}')" style="background:var(--danger); border-color:var(--danger); margin-left:8px; width:32px; height:32px; flex-shrink:0;">🗑️</button>` : '';
+        `<button class="btn-photo" onclick="deleteAnomaly('${key}')" style="background:var(--danger); border-color:var(--danger); color:#fff; margin-left:8px; width:32px; height:32px; flex-shrink:0;" title="Supprimer le signalement">${icon('trash')}</button>` : '';
+
+    // Motif + commentaire du signalement, affichés dès qu'un motif existe
+    // (secondaire mais accessible : sous le badge, jamais escamotés).
+    const anomalyDetail = anomaly
+        ? `<div class="anomaly-badge" style="margin-bottom:8px;">
+               <div>${icon('alert-triangle')} ${escapeHtml(data.anomaly_reason || data.note || 'Anomalie signalée')}</div>
+               ${data.anomaly_comment ? `<div style="margin-top:4px; opacity:0.85; font-weight:normal;">${escapeHtml(data.anomaly_comment)}</div>` : ''}
+           </div>`
+        : '';
 
     let contentHtml = '';
 
@@ -191,24 +201,27 @@ function createCard(key, data) {
         const apaid = computeApaid(Math.max(0, conso));
         const consoClass = conso > VERY_HIGH_CONSO_THRESHOLD ? 'high' : (conso > HIGH_CONSO_THRESHOLD ? 'medium' : 'normal');
 
-        const anomalyBadge = anomaly ? `<div class="anomaly-badge" style="margin-bottom:8px;">⚠️ Anomalie signalée</div>` : '';
-        const photoBadge = data.photo_url ? `<div class="anomaly-badge" style="background:var(--success-bg); color:var(--success); margin-bottom:8px;">✅ Photo jointe</div>` : '';
+        const photoBadge = data.photo_url ? `<div class="anomaly-badge" style="background:var(--success-bg); color:var(--success); margin-bottom:8px;">${icon('check-circle')} Photo jointe</div>` : '';
 
         contentHtml = `
-            ${anomalyBadge}
+            ${anomalyDetail}
             ${photoBadge}
-            <div class="validated-index">✅ ${data.new_index} m³</div>
-            <div class="conso-alert ${consoClass}">💧 ${conso.toFixed(1)} m³ · 💰 ${apaid.toLocaleString('fr-FR')} F</div>
-            <button class="btn-edit" onclick="editReading('${key}')" style="margin-top:10px; width:100%;">✏️ Modifier l'index</button>
+            <div class="validated-index"><span class="field-label">${icon('gauge')} Index</span> ${data.new_index} m³</div>
+            <div class="conso-alert ${consoClass}">
+                <span class="field-label">${icon('droplet')} Consommation</span> ${conso.toFixed(1)} m³
+                &nbsp;·&nbsp;
+                <span class="field-label">${icon('coin')} Montant</span> ${apaid.toLocaleString('fr-FR')} F
+            </div>
+            <button class="btn-edit" onclick="editReading('${key}')" style="margin-top:10px; width:100%;">${icon('edit')} Modifier l'index</button>
         `;
     } else {
         if (anomaly) {
             // Signalement actif : on affiche le bouton pour prendre/reprendre la photo
-            const photoStatus = data.photo_url ? '✅ Photo enregistrée' : '📸 PRENDRE LA PHOTO';
+            const photoStatus = data.photo_url ? icon('check-circle') + ' Photo enregistrée' : icon('camera') + ' Prendre la photo';
             const btnColor = data.photo_url ? 'var(--success)' : 'var(--danger)';
 
             contentHtml = `
-                <div class="anomaly-badge" style="margin-bottom:8px;">⚠️ Anomalie signalée</div>
+                ${anomalyDetail}
                 <button class="btn-ok" onclick="takePhoto('${key}')" style="background:${btnColor}; color:#fff; margin-bottom:12px; width:100%; border:none; padding:12px; border-radius:40px; font-weight:bold; cursor:pointer;">
                     ${photoStatus}
                 </button>
@@ -216,22 +229,22 @@ function createCard(key, data) {
                     <div class="index-box clickable-box" onclick="openKeypad('${key}', ${data.last_index})">
                         <span class="index-value-large" id="indexValue_${key}">---</span>
                     </div>
-                    <button id="btn_ok_${key}" class="btn-ok" disabled onclick="confirmReading('${key}')">✅ Valider le relevé</button>
+                    <button id="btn_ok_${key}" class="btn-ok" disabled onclick="confirmReading('${key}')">${icon('check')} Valider le relevé</button>
                 </div>
             `;
         } else {
-            // Pas d'anomalie : saisie simple + gros bouton de signalement
+            // Pas d'anomalie : saisie simple + bouton de signalement secondaire
             contentHtml = `
-                <div class="old-index">Dernier index: ${data.last_index} m³</div>
+                <div class="old-index">${icon('gauge')} Dernier index : ${data.last_index} m³</div>
                 <div class="saisie-container">
                     <div class="index-box clickable-box" onclick="openKeypad('${key}', ${data.last_index})">
                         <span class="index-value-large" id="indexValue_${key}">---</span>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn-anomaly" onclick="reportWithPhoto('${key}')" style="background:var(--danger-bg); color:var(--danger); border:1px solid var(--danger);">
-                            🚨 SIGNALEMENT
+                        <button class="btn-anomaly" onclick="reportWithPhoto('${key}')" title="Signaler une anomalie (compteur cassé, fuite, accès impossible...)">
+                            ${icon('alert-triangle')} Signalement
                         </button>
-                        <button id="btn_ok_${key}" class="btn-ok" disabled onclick="confirmReading('${key}')">✅ VALIDER</button>
+                        <button id="btn_ok_${key}" class="btn-ok" disabled onclick="confirmReading('${key}')">${icon('check')} Valider</button>
                     </div>
                 </div>
             `;
@@ -242,7 +255,7 @@ function createCard(key, data) {
         <div class="client-header">
             <span class="client-name">${escapeHtml(data.name)}</span>
             <div style="display:flex; align-items:center;">
-                <span class="compteur-num">📟 ${escapeHtml(String(data.numero_compteur))}</span>
+                <span class="compteur-num">${icon('gauge')} ${escapeHtml(String(data.numero_compteur))}</span>
                 ${deleteBtn}
             </div>
         </div>

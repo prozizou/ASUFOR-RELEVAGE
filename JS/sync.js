@@ -2,10 +2,11 @@ import { db } from './main.js';
 import { getPendingWrites, clearPendingWrite, updatePendingWriteAttempt, setSyncMetadata } from './offlineDb.js';
 import { showToast, updateOnlineStatus } from './ui.js';
 import { state } from './state.js';
+import { icon } from './icons.js';
 
 export async function syncPendingWrites() {
     if (!navigator.onLine) {
-        console.log('📴 Hors ligne, synchronisation impossible');
+        console.log('Hors ligne, synchronisation impossible');
         return;
     }
     
@@ -15,7 +16,7 @@ export async function syncPendingWrites() {
         return;
     }
     
-    console.log(`🔄 Synchronisation de ${pending.length} opérations en attente...`);
+    console.log(`Synchronisation de ${pending.length} opérations en attente...`);
     updateSyncIndicator(pending.length);
     
     const MAX_ATTEMPTS = 3;
@@ -24,7 +25,7 @@ export async function syncPendingWrites() {
     for (const op of pending) {
         try {
             if (op.attempts >= MAX_ATTEMPTS) {
-                console.warn(`⚠️ Opération ${op.id} abandonnée après ${MAX_ATTEMPTS} tentatives`);
+                console.warn(`Opération ${op.id} abandonnée après ${MAX_ATTEMPTS} tentatives`);
                 successfulIds.push(op.id);
                 continue;
             }
@@ -35,20 +36,20 @@ export async function syncPendingWrites() {
             const localTimestamp = op.data.last_modified || Date.now();
             
             if (remoteTimestamp > localTimestamp) {
-                console.log(`📝 Opération ${op.id} obsolète, abandon`);
+                console.log(`Opération ${op.id} obsolète, abandon`);
                 successfulIds.push(op.id);
                 continue;
             }
             
             await db.ref(op.path).update(op.data);
-            console.log(`✅ Opération ${op.id} synchronisée avec succès`);
+            console.log(`Opération ${op.id} synchronisée avec succès`);
             successfulIds.push(op.id);
-            
+
         } catch (err) {
-            console.error(`❌ Erreur synchro op ${op.id}:`, err);
+            console.error(`Erreur synchro op ${op.id}:`, err);
             await updatePendingWriteAttempt(op.id, (op.attempts || 0) + 1);
             if (err.code === 'NETWORK_ERROR' || err.message?.includes('network')) {
-                console.log('📡 Erreur réseau, pause de la synchronisation');
+                console.log('Erreur réseau, pause de la synchronisation');
                 break;
             }
         }
@@ -63,7 +64,7 @@ export async function syncPendingWrites() {
     await setSyncMetadata('lastSync', Date.now());
     
     if (remaining.length === 0) {
-        showToast('✅ Toutes les données ont été envoyées !', 2000);
+        showToast('Toutes les données ont été envoyées.', 2000);
     }
 }
 
@@ -71,7 +72,7 @@ export function updateSyncIndicator(count) {
     const indicator = document.getElementById('sync-indicator');
     if (indicator) {
         if (count > 0) {
-            indicator.textContent = `⏳ ${count}`;
+            indicator.innerHTML = `${icon('clock')} ${count}`;
             indicator.classList.remove('hidden');
             indicator.title = `${count} élément(s) en attente d'envoi`;
         } else {
@@ -81,10 +82,10 @@ export function updateSyncIndicator(count) {
 }
 
 export function handleOnline() {
-    console.log('🌐 Connexion rétablie');
+    console.log('Connexion rétablie');
     updateOnlineStatus();
-    showToast('📡 Connexion internet retrouvée - Envoi des données en cours...', 3000);
-    
+    showToast('Connexion internet retrouvée : envoi des données en cours...', 3000);
+
     if (state.networkStatusDebounce) clearTimeout(state.networkStatusDebounce);
     state.networkStatusDebounce = setTimeout(() => {
         syncPendingWrites();
@@ -93,7 +94,7 @@ export function handleOnline() {
 }
 
 export function handleOffline() {
-    console.log('📴 Mode hors ligne activé');
+    console.log('Mode hors ligne activé');
     updateOnlineStatus();
-    showToast('📴 Pas de connexion internet - Vos données seront envoyées automatiquement au retour du réseau', 4000);
+    showToast('Pas de connexion internet : vos données seront envoyées automatiquement au retour du réseau.', 4000);
 }

@@ -5,10 +5,11 @@ import { closeModal, handleOverlayClick, showToast } from './ui.js';
 import { handleOnline, handleOffline, syncPendingWrites } from './sync.js';
 import { login, enterApp, confirmLogout, executeLogout } from './auth.js';
 import { takePhoto, stopCamera, captureImage, retakePhoto, confirmPhotoAndIndex } from './media.js';
-import { openKeypad, keypadInput, validateKeypad, confirmReading, submitReading, editReading, submitEditReading, reportWithPhoto, deleteAnomaly } from './actions.js';
+import { openKeypad, keypadInput, validateKeypad, confirmReading, submitReading, editReading, submitEditReading, reportWithPhoto, proceedToAnomalyPhoto, deleteAnomaly } from './actions.js';
 import { setFilter, applyFilters } from './clients.js';
 import { showReport, shareReport } from './reports.js';
 import { createPwaBanner } from './pwa.js';
+import { hydrateIcons } from './icons.js';
 
 // ==================== FIREBASE INIT ====================
 firebase.initializeApp(firebaseConfig);
@@ -16,8 +17,9 @@ export const db = firebase.database();
 
 // ==================== INITIALISATION DE L'APP ====================
 async function initializeApp() {
-    console.log(`🚀 Initialisation ASUFOR Relevage v${APP_VERSION} (Modulaire)`);
+    console.log(`Initialisation ASUFOR Relevage v${APP_VERSION} (Modulaire)`);
 
+    hydrateIcons();
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
@@ -26,18 +28,18 @@ async function initializeApp() {
             // ✅ './sw.js' est résolu relativement à index.html (racine du projet)
             // sw.js doit donc être à la racine — c'est bien le cas dans ce ZIP corrigé
             const registration = await navigator.serviceWorker.register('./sw.js');
-            console.log('✅ Service Worker enregistré', registration.scope);
+            console.log('Service Worker enregistré', registration.scope);
 
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        showToast('🔄 Nouvelle version disponible. Redémarrez l\'application.', 5000);
+                        showToast('Nouvelle version disponible. Redémarrez l\'application.', 5000);
                     }
                 });
             });
         } catch (err) {
-            console.error('❌ Erreur Service Worker:', err);
+            console.error('Erreur Service Worker:', err);
         }
     }
 
@@ -92,6 +94,7 @@ window.retakePhoto = retakePhoto;
 window.confirmPhotoAndIndex = confirmPhotoAndIndex;
 
 window.reportWithPhoto = reportWithPhoto;
+window.proceedToAnomalyPhoto = proceedToAnomalyPhoto;
 window.deleteAnomaly = deleteAnomaly;
 
 window.showReport = showReport;

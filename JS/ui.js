@@ -33,7 +33,7 @@ export function updateOnlineStatus() {
     // Mettre à jour le titre de la page
     const siege = localStorage.getItem('agent_siege');
     const label = siege ? `ASUFOR ${siege}` : 'ASUFOR';
-    document.title = navigator.onLine ? `💧 ${label}` : '📴 ASUFOR (Hors ligne)';
+    document.title = navigator.onLine ? label : `${label} (hors ligne)`;
 }
 
 export function openModal(html) {

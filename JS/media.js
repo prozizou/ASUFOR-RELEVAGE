@@ -3,6 +3,7 @@ import { db } from './main.js';
 import { state, compteurPath } from './state.js';
 import { showToast } from './ui.js';
 import { addPendingWrite } from './offlineDb.js';
+import { icon } from './icons.js';
 
 export async function loadTesseractIfNeeded() {
     if (state.tesseractLoaded) return Promise.resolve();
@@ -20,14 +21,14 @@ export async function takePhoto(key, mode = 'index') {
     state.currentPhotoMode = mode; // 'index' ou 'signalement'
 
     if (mode === 'index') {
-        try { await loadTesseractIfNeeded(); } catch (err) { showToast('❌ Lecture automatique indisponible'); return; }
+        try { await loadTesseractIfNeeded(); } catch (err) { showToast('Lecture automatique indisponible'); return; }
     }
 
     document.getElementById('camera-modal').classList.remove('hidden');
     document.getElementById('camera-live-view').classList.remove('hidden');
     document.getElementById('camera-preview-view').classList.add('hidden');
     document.getElementById('ocr-input').value = '';
-    document.getElementById('ocr-status').textContent = '🔍 Lecture en cours...';
+    document.getElementById('ocr-status').innerHTML = icon('search') + ' Lecture en cours...';
 
     // Afficher ou masquer le bloc OCR selon le mode
     const ocrBox = document.querySelector('.ocr-box');
@@ -36,7 +37,7 @@ export async function takePhoto(key, mode = 'index') {
     // Adapter le label du bouton de confirmation
     const btnConfirm = document.getElementById('btn-confirm-photo');
     if (btnConfirm) {
-        btnConfirm.innerHTML = mode === 'signalement' ? '📤 Envoyer le signalement' : '✅ Valider l\'index';
+        btnConfirm.innerHTML = mode === 'signalement' ? icon('send') + ' Envoyer le signalement' : icon('check') + ' Valider l\'index';
     }
 
     try {
@@ -47,7 +48,7 @@ export async function takePhoto(key, mode = 'index') {
         video.srcObject = state.cameraStream;
         await video.play();
     } catch (err) {
-        showToast('❌ Accès caméra refusé');
+        showToast('Accès caméra refusé');
         stopCamera();
     }
 }
@@ -146,11 +147,11 @@ async function analyzeImageForOCR(canvas) {
         const digits = result.data.text.replace(/[^0-9]/g, '');
         if (digits.length >= 3) {
             document.getElementById('ocr-input').value = digits;
-            document.getElementById('ocr-status').textContent = '✅ Chiffre détecté';
+            document.getElementById('ocr-status').innerHTML = icon('check-circle') + ' Chiffre détecté';
         } else {
-            document.getElementById('ocr-status').textContent = '⚠️ Chiffre illisible, corrigez-le vous-même';
+            document.getElementById('ocr-status').innerHTML = icon('alert-triangle') + ' Chiffre illisible, corrigez-le vous-même';
         }
-    } catch (e) { document.getElementById('ocr-status').textContent = '⚠️ Lecture impossible, entrez le chiffre vous-même'; }
+    } catch (e) { document.getElementById('ocr-status').innerHTML = icon('alert-triangle') + ' Lecture impossible, entrez le chiffre vous-même'; }
 }
 
 export async function confirmPhotoAndIndex() {
@@ -160,7 +161,7 @@ export async function confirmPhotoAndIndex() {
     
     const btn = document.getElementById('btn-confirm-photo');
     btn.disabled = true;
-    btn.innerHTML = '⏳ Envoi en cours...';
+    btn.innerHTML = icon('clock') + ' Envoi en cours...';
 
     const formData = new FormData();
     formData.append('file', state.currentPhotoBlob);
@@ -176,16 +177,21 @@ export async function confirmPhotoAndIndex() {
         // L'anomalie n'est prise en compte qu'à ce stade (photo confirmée), pas dès le clic sur SIGNALEMENT.
         const updateData = { photo_url: data.secure_url, last_modified: Date.now() };
         if (mode === 'signalement') {
-            updateData.note = 'Anomalie signalée';
+            const motif = state.currentAnomalyMotif || 'Anomalie signalée';
+            updateData.note = motif;
+            updateData.anomaly_reason = motif;
+            updateData.anomaly_comment = state.currentAnomalyComment || '';
             updateData.anomaly_date = Date.now();
+            state.currentAnomalyMotif = null;
+            state.currentAnomalyComment = '';
         }
         if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
         else await addPendingWrite({ path: compteurPath(key), data: updateData });
 
         if (mode === 'signalement') {
-            showToast('📤 Signalement envoyé à l\'administration !');
+            showToast('Signalement envoyé à l\'administration.');
         } else {
-            showToast('✅ Photo envoyée à l\'administration !');
+            showToast('Photo envoyée à l\'administration.');
         }
         releasePhotoObjectUrl();
         document.getElementById('camera-modal').classList.add('hidden');
@@ -198,10 +204,10 @@ export async function confirmPhotoAndIndex() {
             if (btnOk) btnOk.disabled = false;
         }
 
-    } catch (err) { 
-        showToast('❌ Erreur d\'envoi de l\'image'); 
+    } catch (err) {
+        showToast('Erreur d\'envoi de l\'image');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = mode === 'signalement' ? '📤 Envoyer le signalement' : '✅ Valider l\'index';
+        btn.innerHTML = mode === 'signalement' ? icon('send') + ' Envoyer le signalement' : icon('check') + ' Valider l\'index';
     }
 }

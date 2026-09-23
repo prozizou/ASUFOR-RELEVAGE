@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { showToast, escapeHtml, updateOnlineStatus, openModal, closeModal } from './ui.js';
 import { icon } from './icons.js';
 import { loadClientsData, detachListener } from './clients.js';
-import { syncPendingWrites } from './sync.js';
+import { syncPendingWrites, refreshSyncIndicator } from './sync.js';
 import { createPwaBanner } from './pwa.js';
 import { APP_VERSION, firebaseConfig } from './config.js';
 
@@ -171,6 +171,10 @@ export function enterApp(name, zone) {
 
     if (navigator.onLine) {
         syncPendingWrites();
+    } else {
+        // Hors ligne : syncPendingWrites() ne s'exécute pas, on affiche quand
+        // même l'état réel de la file d'attente locale.
+        refreshSyncIndicator();
     }
 
     createPwaBanner();

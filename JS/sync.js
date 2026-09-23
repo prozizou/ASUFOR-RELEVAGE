@@ -1,6 +1,7 @@
 import { db } from './main.js';
 import { getPendingWrites, clearPendingWrite, updatePendingWriteAttempt, setSyncMetadata } from './offlineDb.js';
 import { showToast, updateOnlineStatus } from './ui.js';
+import { icon } from './icons.js';
 import { state } from './state.js';
 
 export async function syncPendingWrites() {
@@ -69,14 +70,28 @@ export async function syncPendingWrites() {
 
 export function updateSyncIndicator(count) {
     const indicator = document.getElementById('sync-indicator');
-    if (indicator) {
-        if (count > 0) {
-            indicator.textContent = `⏳ ${count}`;
-            indicator.classList.remove('hidden');
-            indicator.title = `${count} élément(s) en attente d'envoi`;
-        } else {
-            indicator.classList.add('hidden');
-        }
+    if (!indicator) return;
+
+    indicator.classList.remove('hidden');
+    if (count > 0) {
+        indicator.className = 'sync-pending is-pending';
+        indicator.innerHTML = `${icon('clock', { size: 11 })}<span class="sync-label">À synchroniser (${count})</span>`;
+        indicator.title = `${count} élément(s) en attente d'envoi`;
+    } else {
+        indicator.className = 'sync-pending is-ok';
+        indicator.innerHTML = `${icon('check', { size: 11 })}<span class="sync-label">Synchronisé</span>`;
+        indicator.title = 'Toutes les données sont synchronisées';
+    }
+}
+
+// Reflète l'état réel de la file d'attente hors ligne (utile même sans réseau,
+// où syncPendingWrites() ne s'exécute pas et ne mettrait donc pas l'indicateur à jour).
+export async function refreshSyncIndicator() {
+    try {
+        const pending = await getPendingWrites();
+        updateSyncIndicator(pending.length);
+    } catch (e) {
+        console.warn('Impossible de lire la file hors ligne:', e);
     }
 }
 
@@ -91,6 +106,10 @@ export function handleOnline() {
         state.networkStatusDebounce = null;
     }, 500);
 }
+
+// Toute écriture ajoutée/retirée de la file hors ligne (même sans réseau,
+// donc en dehors de syncPendingWrites()) doit se refléter sur l'indicateur.
+window.addEventListener('offline-queue-changed', refreshSyncIndicator);
 
 export function handleOffline() {
     console.log('📴 Mode hors ligne activé');

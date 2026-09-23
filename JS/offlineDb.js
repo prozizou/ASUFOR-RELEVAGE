@@ -37,6 +37,7 @@ export async function addPendingWrite(operation) {
         agentId: state.currentAgentId
     };
     store.add(opWithMeta);
+    window.dispatchEvent(new CustomEvent('offline-queue-changed'));
     return tx.complete;
 }
 
@@ -56,6 +57,7 @@ export async function clearPendingWrite(id) {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     store.delete(id);
+    window.dispatchEvent(new CustomEvent('offline-queue-changed'));
     return tx.complete;
 }
 

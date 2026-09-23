@@ -208,7 +208,10 @@ function createCard(key, data) {
     if (done) {
         const conso = computeConso(data);
         const apaid = computeApaid(Math.max(0, conso));
-        const consoClass = conso > VERY_HIGH_CONSO_THRESHOLD ? 'high' : (conso > HIGH_CONSO_THRESHOLD ? 'medium' : 'normal');
+        const isHigh = conso > VERY_HIGH_CONSO_THRESHOLD;
+        const isMedium = !isHigh && conso > HIGH_CONSO_THRESHOLD;
+        const levelBadge = isHigh ? `<span class="badge-level high">Très élevée</span>`
+            : isMedium ? `<span class="badge-level">Élevée</span>` : '';
 
         const anomalyBadge = anomaly ? `<div class="anomaly-badge">${icon('alert-triangle', { size: 12 })} Anomalie signalée</div>` : '';
         const photoBadge = data.photo_url ? `<div class="anomaly-badge photo-badge">${icon('camera', { size: 12 })} Photo jointe</div>` : '';
@@ -216,14 +219,15 @@ function createCard(key, data) {
         contentHtml = `
             ${anomalyBadge}
             ${photoBadge}
-            <div class="data-row conso-alert ${consoClass}">
+            <div class="data-row">
                 <span class="data-item"><span class="data-label">Index</span> <span class="data-value">${Number(data.new_index).toLocaleString('fr-FR')}</span></span>
                 <span class="data-sep">·</span>
                 <span class="data-item">${icon('droplet', { size: 13 })}<span class="data-label">Conso.</span> <span class="data-value">${fmtM3(conso)} m³</span></span>
+                ${levelBadge}
                 <span class="data-sep">·</span>
                 <span class="data-item"><span class="data-value amount">${apaid.toLocaleString('fr-FR')} F</span></span>
             </div>
-            <button class="btn-edit" onclick="editReading('${key}')">${icon('edit', { size: 13 })} Modifier</button>
+            <button class="btn-edit" onclick="editReading('${key}')">${icon('edit', { size: 12 })} Modifier</button>
         `;
     } else {
         if (anomaly) {
@@ -269,7 +273,7 @@ function createCard(key, data) {
         <div class="client-header">
             <span class="client-name">${escapeHtml(data.name)}</span>
             <div class="client-header-right">
-                <span class="compteur-num">${icon('hash', { size: 11 })} ${escapeHtml(String(data.numero_compteur))}</span>
+                <span class="compteur-num">Compteur ${escapeHtml(String(data.numero_compteur))}</span>
                 ${deleteBtn}
             </div>
         </div>

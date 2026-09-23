@@ -1,5 +1,5 @@
 import { db } from './main.js';
-import { getPendingWrites, clearPendingWrite, updatePendingWriteAttempt, setSyncMetadata } from './offlineDb.js';
+import { getPendingWrites, clearPendingWrite, updatePendingWriteAttempt, setSyncMetadata, getSyncMetadata } from './offlineDb.js';
 import { showToast, updateOnlineStatus } from './ui.js';
 import { icon } from './icons.js';
 import { state } from './state.js';
@@ -77,10 +77,36 @@ export function updateSyncIndicator(count) {
         indicator.className = 'sync-pending is-pending';
         indicator.innerHTML = `${icon('clock', { size: 11 })}<span class="sync-label">À synchroniser (${count})</span>`;
         indicator.title = `${count} élément(s) en attente d'envoi`;
+        hideSyncDetail();
     } else {
         indicator.className = 'sync-pending is-ok';
         indicator.innerHTML = `${icon('check', { size: 11 })}<span class="sync-label">Synchronisé</span>`;
         indicator.title = 'Toutes les données sont synchronisées';
+        updateSyncDetail();
+    }
+}
+
+function hideSyncDetail() {
+    document.getElementById('sync-detail')?.classList.add('hidden');
+}
+
+// Info discrète affichée sous la pastille « Synchronisé » (heure de la
+// dernière synchronisation réussie). Volontairement fire-and-forget : ne
+// bloque jamais l'affichage de l'état principal de synchronisation.
+async function updateSyncDetail() {
+    const detail = document.getElementById('sync-detail');
+    if (!detail) return;
+    try {
+        const lastSync = await getSyncMetadata('lastSync');
+        if (lastSync) {
+            const time = new Date(lastSync).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            detail.textContent = `Dernière synchro : ${time}`;
+            detail.classList.remove('hidden');
+        } else {
+            hideSyncDetail();
+        }
+    } catch {
+        hideSyncDetail();
     }
 }
 

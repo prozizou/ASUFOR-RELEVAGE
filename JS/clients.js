@@ -210,8 +210,15 @@ function createCard(key, data) {
         const apaid = computeApaid(Math.max(0, conso));
         const isHigh = conso > VERY_HIGH_CONSO_THRESHOLD;
         const isMedium = !isHigh && conso > HIGH_CONSO_THRESHOLD;
-        const levelBadge = isHigh ? `<span class="badge-level high">Très élevée</span>`
-            : isMedium ? `<span class="badge-level">Élevée</span>` : '';
+        // Badge dans la même zone (et le même style) que les badges anomalie/photo,
+        // plutôt qu'inline dans la ligne de données : la ligne Index/Conso./Montant
+        // reste ainsi toujours sur une seule ligne, quelle que soit la longueur du
+        // texte du badge, et tous les badges d'alerte s'alignent au même endroit.
+        const levelBadge = isHigh
+            ? `<div class="anomaly-badge">${icon('alert-triangle', { size: 12 })} Consommation très élevée</div>`
+            : isMedium
+                ? `<div class="anomaly-badge notice">${icon('alert-triangle', { size: 12 })} Consommation élevée</div>`
+                : '';
 
         const anomalyBadge = anomaly ? `<div class="anomaly-badge">${icon('alert-triangle', { size: 12 })} Anomalie signalée</div>` : '';
         const photoBadge = data.photo_url ? `<div class="anomaly-badge photo-badge">${icon('camera', { size: 12 })} Photo jointe</div>` : '';
@@ -219,11 +226,11 @@ function createCard(key, data) {
         contentHtml = `
             ${anomalyBadge}
             ${photoBadge}
+            ${levelBadge}
             <div class="data-row">
                 <span class="data-item"><span class="data-label">Index</span> <span class="data-value">${Number(data.new_index).toLocaleString('fr-FR')}</span></span>
                 <span class="data-sep">·</span>
-                <span class="data-item">${icon('droplet', { size: 13 })}<span class="data-label">Conso.</span> <span class="data-value">${fmtM3(conso)} m³</span></span>
-                ${levelBadge}
+                <span class="data-item" title="Consommation">${icon('droplet', { size: 13 })}<span class="data-value">${fmtM3(conso)} m³</span></span>
                 <span class="data-sep">·</span>
                 <span class="data-item"><span class="data-value amount">${apaid.toLocaleString('fr-FR')} F</span></span>
             </div>

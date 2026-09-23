@@ -107,6 +107,15 @@ body {
 }
 .sync-pending.is-pending { background: var(--accent-glow); color: var(--accent-dark); }
 .sync-pending.is-ok { background: var(--success-bg); color: var(--success); }
+
+/* Info discrète sous la pastille de synchro, uniquement quand synchronisé */
+.sync-detail {
+    text-align: right;
+    font-size: 0.64rem;
+    color: var(--text-tertiary);
+    margin-top: -3px;
+}
+
 .online-dot {
     width: 8px;
     height: 8px;
@@ -186,47 +195,39 @@ body {
 .card {
     background: var(--bg-card);
     margin: 6px 14px;
-    padding: 10px 14px;
+    padding: 8px 14px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-1);
     border-left: 3px solid transparent;
 }
-.card.done { border-left-color: var(--success); padding-bottom: 8px; }
+.card.done { border-left-color: var(--success); padding-bottom: 6px; }
 
-.client-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+.client-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 8px; }
 .client-name { font-weight: 700; font-size: 0.95rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .client-header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .compteur-num { display: inline-flex; align-items: center; font-size: 0.7rem; background: var(--bg-elevated); padding: 3px 8px; border-radius: 999px; color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
 
-.old-index { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 8px; }
+.old-index { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px; }
 .old-index b { color: var(--text-primary); font-weight: 700; }
 
-/* Ligne de données (relevé terminé) : Index · Conso. · Montant, clairement labellisés */
-.data-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px; margin: 2px 0; font-size: 0.85rem; }
-.data-item { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+/* Ligne de données (relevé terminé) : Index · Conso. · Montant, clairement labellisés.
+   Compacte à dessein pour ne jamais avoir besoin de passer à la ligne. */
+.data-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin: 1px 0; font-size: 0.82rem; }
+.data-item { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
 .data-item .icon { align-self: center; color: var(--text-tertiary); }
-.data-label { color: var(--text-secondary); font-weight: 500; }
+.data-label { color: var(--text-secondary); font-weight: 500; font-size: 0.88em; }
 .data-value { color: var(--text-primary); font-weight: 700; }
 .data-value.amount { color: var(--success); }
 .data-sep { color: var(--border); }
 
-/* Badge de niveau de consommation : plus explicite qu'une simple couleur */
-.badge-level {
-    display: inline-flex; align-items: center;
-    font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
-    padding: 2px 7px; border-radius: 999px;
-    background: var(--accent-glow); color: var(--accent-dark);
-}
-.badge-level.high { background: var(--danger-bg); color: var(--danger); }
-
 /* ZONE DE SAISIE — libellée, unité affichée, tap pour ouvrir le pavé */
-.saisie-container { margin-top: 8px; display: flex; flex-direction: column; gap: 7px; }
+.saisie-container { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
 .field-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.02em; }
 .index-box {
     background: var(--bg-elevated);
     border: 1.5px dashed var(--border);
     border-radius: var(--radius-md);
-    padding: 8px 14px;
+    padding: 6px 14px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -236,7 +237,7 @@ body {
 .index-box.filled { background: var(--accent-glow); border: 1.5px solid var(--accent); }
 .index-box:active { background: var(--bg-elevated-strong); }
 .index-box.filled:active { background: var(--accent-glow); }
-.index-value-large { font-size: 1.35rem; font-weight: 800; color: var(--text-tertiary); }
+.index-value-large { font-size: 1.25rem; font-weight: 800; color: var(--text-tertiary); }
 .index-box.filled .index-value-large { color: var(--accent-dark); }
 .index-unit { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
 
@@ -278,9 +279,12 @@ body {
     cursor: not-allowed;
 }
 
+/* Badges d'alerte (anomalie / photo) : toujours juste sous l'en-tête de
+   carte, avec le même alignement, que le texte tienne sur une ou deux
+   lignes (motif + commentaire pouvant être longs). */
 .anomaly-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    margin: 0 0 8px;
+    display: inline-flex; align-items: flex-start; gap: 6px;
+    margin: 0 0 6px;
     padding: 5px 10px;
     border-radius: var(--radius-sm);
     background: var(--danger-bg);
@@ -289,7 +293,9 @@ body {
     font-weight: 700;
     word-break: break-word;
 }
+.anomaly-badge .icon { flex-shrink: 0; margin-top: 1px; }
 .photo-badge { background: var(--success-bg); color: var(--success); }
+.anomaly-badge.notice { background: var(--accent-glow); color: var(--accent-dark); }
 
 .validated-index {
     display: inline-flex; align-items: center; gap: 6px;
@@ -301,19 +307,18 @@ body {
 .btn-edit {
     background: transparent;
     border: none;
-    color: var(--text-tertiary);
-    padding: 4px 0 0;
-    font-size: 0.72rem;
-    font-weight: 500;
-    margin-top: 2px;
+    color: var(--text-secondary);
+    padding: 3px 0 0;
+    font-size: 0.74rem;
+    font-weight: 600;
+    margin-top: 1px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    opacity: 0.85;
 }
-.btn-edit .icon { width: 12px; height: 12px; }
-.btn-edit:active { color: var(--text-primary); opacity: 1; }
+.btn-edit .icon { width: 12px; height: 12px; color: var(--accent-dark); }
+.btn-edit:active { color: var(--text-primary); }
 
 .btn-photo { background: var(--bg-elevated); border: none; border-radius: var(--radius-sm); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; cursor: pointer; }
 .btn-photo.danger { background: var(--danger-bg); color: var(--danger); }
@@ -378,11 +383,14 @@ body {
     border: 1px solid var(--border);
     color: var(--text-secondary);
     border-radius: var(--radius-md);
-    padding: 0 16px;
+    padding: 0 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     flex-shrink: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
     transition: background 0.1s;
     cursor: pointer;
 }

@@ -36,6 +36,7 @@ JS/
   config.js          Constantes (prix, seuils, version, config Firebase)
   state.js           État global partagé entre modules
   utils.js           Helpers métier centralisés (isDone, computeConso, computeApaid, hasAnomaly)
+  icons.js           Bibliothèque d'icônes SVG inline unique (remplace les emoji dans l'UI)
   auth.js            Connexion / déconnexion agent
   clients.js         Chargement, filtrage, rendu de la liste de clients
   actions.js         Saisie/validation/édition des relevés, signalement

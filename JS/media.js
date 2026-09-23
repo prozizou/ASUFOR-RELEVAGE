@@ -2,6 +2,7 @@
 import { db } from './main.js';
 import { state, compteurPath } from './state.js';
 import { showToast } from './ui.js';
+import { icon } from './icons.js';
 import { addPendingWrite } from './offlineDb.js';
 
 export async function loadTesseractIfNeeded() {
@@ -36,7 +37,9 @@ export async function takePhoto(key, mode = 'index') {
     // Adapter le label du bouton de confirmation
     const btnConfirm = document.getElementById('btn-confirm-photo');
     if (btnConfirm) {
-        btnConfirm.innerHTML = mode === 'signalement' ? '📤 Envoyer le signalement' : '✅ Valider l\'index';
+        btnConfirm.innerHTML = mode === 'signalement'
+            ? `${icon('alert-triangle', { size: 15 })} Envoyer le signalement`
+            : `${icon('check', { size: 15 })} Valider l'index`;
     }
 
     try {
@@ -173,11 +176,12 @@ export async function confirmPhotoAndIndex() {
         const data = await res.json();
         
         // 2. Sauvegarde dans Firebase
-        // L'anomalie n'est prise en compte qu'à ce stade (photo confirmée), pas dès le clic sur SIGNALEMENT.
+        // L'anomalie n'est prise en compte qu'à ce stade (photo confirmée), pas dès le choix du motif.
         const updateData = { photo_url: data.secure_url, last_modified: Date.now() };
         if (mode === 'signalement') {
-            updateData.note = 'Anomalie signalée';
+            updateData.note = state.currentAnomalyNote || 'Anomalie signalée';
             updateData.anomaly_date = Date.now();
+            state.currentAnomalyNote = null;
         }
         if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
         else await addPendingWrite({ path: compteurPath(key), data: updateData });
@@ -202,6 +206,8 @@ export async function confirmPhotoAndIndex() {
         showToast('❌ Erreur d\'envoi de l\'image'); 
     } finally {
         btn.disabled = false;
-        btn.innerHTML = mode === 'signalement' ? '📤 Envoyer le signalement' : '✅ Valider l\'index';
+        btn.innerHTML = mode === 'signalement'
+            ? `${icon('alert-triangle', { size: 15 })} Envoyer le signalement`
+            : `${icon('check', { size: 15 })} Valider l'index`;
     }
 }

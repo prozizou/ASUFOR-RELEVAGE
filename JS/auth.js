@@ -1,6 +1,7 @@
 // js/auth.js
 import { state } from './state.js';
 import { showToast, escapeHtml, updateOnlineStatus, openModal, closeModal } from './ui.js';
+import { icon } from './icons.js';
 import { loadClientsData, detachListener } from './clients.js';
 import { syncPendingWrites } from './sync.js';
 import { createPwaBanner } from './pwa.js';
@@ -185,19 +186,18 @@ export function confirmLogout() {
 
     let warningMessage = 'Voulez-vous vraiment quitter votre session ?';
     if (parseInt(pendingCount) > 0) {
-        warningMessage += `\n\n⚠️ ${pendingCount} élément(s) pas encore envoyé(s).`;
+        warningMessage += `\n\n${pendingCount} élément(s) pas encore envoyé(s).`;
     }
 
     openModal(`
         <div class="modal-content" style="text-align:center;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🚪</div>
-            <h3 class="modal-title">Déconnexion</h3>
-            <p style="color:var(--text-secondary); margin-bottom: 20px; white-space: pre-line;">
+            <h3 class="modal-title" style="justify-content:center;">${icon('log-out', { size: 17 })} Déconnexion</h3>
+            <p style="color:var(--text-secondary); margin: 10px 0 4px; white-space: pre-line;">
                 ${escapeHtml(warningMessage)}
             </p>
             <div class="modal-actions">
                 <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
-                <button class="btn-modal primary" style="background:var(--danger); color:white;" onclick="executeLogout()">
+                <button class="btn-modal neutral-dark" onclick="executeLogout()">
                     Quitter
                 </button>
             </div>

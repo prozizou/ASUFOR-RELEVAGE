@@ -2,6 +2,7 @@
 import { db } from './main.js';
 import { state, compteurPath } from './state.js';
 import { showToast, openModal, closeModal, escapeHtml } from './ui.js';
+import { icon } from './icons.js';
 import { addPendingWrite } from './offlineDb.js';
 import { syncPendingWrites } from './sync.js';
 import { VERY_HIGH_CONSO_THRESHOLD } from './config.js';
@@ -12,13 +13,13 @@ export function openKeypad(key, last) {
     openModal(`
         <div class="modal-content keypad-modal">
             <div class="keypad-display">
-                <span class="keypad-value" id="key-val">---</span>
+                <span class="keypad-value" id="key-val">—</span>
                 <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:8px;">
-                    Dernier index: ${last} m³
+                    Dernier index : ${last} m³
                 </div>
             </div>
             <div class="keypad-grid">
-                ${[1,2,3,4,5,6,7,8,9,'.',0,'⌫'].map(k => 
+                ${[1,2,3,4,5,6,7,8,9,'.',0,'⌫'].map(k =>
                     `<button class="keypad-btn" onclick="keypadInput('${k}')">${k}</button>`
                 ).join('')}
             </div>
@@ -32,8 +33,8 @@ export function openKeypad(key, last) {
 
 export function keypadInput(k) {
     const display = document.getElementById('key-val');
-    let current = display.textContent === '---' ? '' : display.textContent;
-    
+    let current = display.textContent === '—' ? '' : display.textContent;
+
     if (k === '⌫') {
         current = current.slice(0, -1);
     } else if (k === '.' && current.includes('.')) {
@@ -41,31 +42,33 @@ export function keypadInput(k) {
     } else {
         current += k;
     }
-    
-    display.textContent = current || '---';
+
+    display.textContent = current || '—';
 }
 
 export function validateKeypad(key, last) {
     const value = parseFloat(document.getElementById('key-val').textContent);
-    
+
     if (isNaN(value)) {
         showToast('⚠️ Veuillez saisir un nombre valide');
         return;
     }
-    
+
     if (value <= last) {
         showToast(`⚠️ L'index doit être supérieur à ${last} m³`);
         return;
     }
-    
+
     closeModal();
-    
+
     const indexSpan = document.getElementById(`indexValue_${key}`);
     const btnOk = document.getElementById(`btn_ok_${key}`);
-    
+    const indexBox = document.getElementById(`indexBox_${key}`);
+
     if (indexSpan && btnOk) {
         indexSpan.textContent = value;
         btnOk.disabled = false;
+        if (indexBox) indexBox.classList.add('filled');
     }
 }
 
@@ -80,26 +83,23 @@ export async function confirmReading(key) {
     const apaid = computeApaid(conso);
 
     const consoWarning = conso > VERY_HIGH_CONSO_THRESHOLD ?
-        `<p style="color:var(--danger); margin-top:10px;">⚠️ Consommation anormalement élevée !</p>` : '';
+        `<div class="anomaly-badge" style="margin-top:12px;">${icon('alert-triangle', { size: 13 })} Consommation anormalement élevée</div>` : '';
 
     const doubleWarning = isIndexDoubled(val, item.data.last_index) ? `
-        <div style="background:var(--danger-bg); color:var(--danger); padding:12px 16px; border-radius:14px; margin-bottom:14px; font-weight:bold; text-align:center;">
-            ⚠️ Attention : ce chiffre (${val} m³) est au moins le double de l'ancien index (${item.data.last_index} m³).<br>Vérifiez bien le compteur avant de valider !
+        <div class="anomaly-badge" style="display:flex; margin-bottom:14px;">
+            ${icon('alert-triangle', { size: 14 })}
+            <span>Ce chiffre (${val} m³) est au moins le double de l'ancien index (${item.data.last_index} m³). Vérifiez bien le compteur avant de valider.</span>
         </div>
     ` : '';
 
     openModal(`
         <div class="modal-content">
-            <h3 class="modal-title">🔍 Confirmer le relevé</h3>
-            <p style="text-align:center; color:var(--text-primary); margin-bottom:10px; font-weight:bold;">
-                ${escapeHtml(item.data.name)}
-            </p>
+            <h3 class="modal-title">Confirmer le relevé</h3>
+            <p class="modal-subtitle" style="margin-bottom:14px;">${escapeHtml(item.data.name)}</p>
             ${doubleWarning}
-            <div style="background:var(--bg-elevated); padding:16px; border-radius:16px;">
-                <div class="rep-row"><span>Nouvel Index:</span><b style="color:var(--accent);">${val} m³</b></div>
-                <div class="rep-row"><span>Consommation:</span><b>${conso.toFixed(1)} m³</b></div>
-                <div class="rep-row"><span>Montant à payer:</span><b style="color:var(--success);">${apaid.toLocaleString('fr-FR')} F</b></div>
-            </div>
+            <div class="rep-row"><span class="rep-label">Nouvel index</span><b>${val} m³</b></div>
+            <div class="rep-row"><span class="rep-label">Consommation</span><b>${conso.toFixed(1)} m³</b></div>
+            <div class="rep-row"><span class="rep-label">Montant à payer</span><b style="color:var(--success);">${apaid.toLocaleString('fr-FR')} F</b></div>
             ${consoWarning}
             <div class="modal-actions">
                 <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
@@ -149,19 +149,15 @@ export function editReading(key) {
     
     openModal(`
         <div class="modal-content">
-            <h3 class="modal-title">✏️ Modifier le relevé</h3>
-            <p style="text-align:center; font-weight:bold; color:var(--text-primary);">
-                ${escapeHtml(data.name)}
-            </p>
-            <div style="margin:16px 0;">
-                <label style="color:var(--text-secondary); font-size:0.85rem;">Ancien index</label>
-                <input type="number" class="login-input" value="${data.last_index}" disabled 
-                       style="margin-bottom:12px; width:100%; border-radius:12px; padding:12px;">
-                
-                <label style="color:var(--text-secondary); font-size:0.85rem;">Nouvel index corrigé</label>
-                <input type="number" id="edit-new-index" class="login-input" value="${data.new_index}" 
-                       step="0.1" style="width:100%; border-radius:12px; padding:12px;">
-            </div>
+            <h3 class="modal-title">${icon('edit', { size: 16 })} Modifier le relevé</h3>
+            <p class="modal-subtitle" style="margin-bottom:16px;">${escapeHtml(data.name)}</p>
+            <div class="field-label" style="margin-bottom:6px;">Ancien index</div>
+            <input type="number" class="login-input" value="${data.last_index}" disabled
+                   style="margin-bottom:14px; width:100%; text-align:left; opacity:0.6;">
+
+            <div class="field-label" style="margin-bottom:6px;">Nouvel index corrigé</div>
+            <input type="number" id="edit-new-index" class="login-input" value="${data.new_index}"
+                   step="0.1" style="width:100%; text-align:left;">
             <div class="modal-actions">
                 <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
                 <button class="btn-modal primary" onclick="submitEditReading('${key}', ${data.last_index})">
@@ -187,7 +183,7 @@ export async function submitEditReading(key, oldLastIndex) {
 
     if (isIndexDoubled(newIndex, oldLastIndex)) {
         const confirmed = await confirmDialog(
-            '⚠️ Chiffre à vérifier',
+            'Chiffre à vérifier',
             `Ce chiffre (${newIndex} m³) est au moins le double de l'ancien index (${oldLastIndex} m³). Vérifiez bien le compteur. Confirmer quand même ?`,
             'Oui, confirmer',
             'Revoir'
@@ -245,12 +241,94 @@ export function confirmDialog(title, message, confirmText = 'Oui', cancelText = 
     });
 }
 
-// === NOUVELLES FONCTIONS DE SIGNALEMENT ===
+// === SIGNALEMENT D'ANOMALIE (motifs prédéfinis) ===
 
-export async function reportWithPhoto(key) {
-    // L'anomalie n'est enregistrée qu'une fois la photo prise et confirmée
-    // (voir confirmPhotoAndIndex en mode 'signalement'), pas dès ce clic.
-    takePhoto(key, 'signalement');
+const ANOMALY_MOTIFS = [
+    { id: 'inaccessible', label: 'Compteur inaccessible', icon: 'ban', photoRequired: false },
+    { id: 'ferme', label: 'Logement fermé', icon: 'lock', photoRequired: false },
+    { id: 'casse', label: 'Compteur cassé', icon: 'alert-triangle', photoRequired: true },
+    { id: 'fuite', label: 'Fuite visible', icon: 'droplet', photoRequired: true },
+    { id: 'illisible', label: 'Index illisible', icon: 'hash', photoRequired: true },
+];
+
+let selectedAnomalyMotif = null;
+
+export function reportAnomaly(key) {
+    selectedAnomalyMotif = null;
+    const item = state.clientsCache.find(c => c.key === key);
+    const name = item ? item.data.name : '';
+    const compteur = item ? item.data.numero_compteur : '';
+
+    openModal(`
+        <div class="modal-content">
+            <h3 class="modal-title">${icon('alert-triangle', { size: 16 })} Signaler une anomalie</h3>
+            <p class="modal-subtitle">${escapeHtml(name)} · Compteur ${escapeHtml(String(compteur))}</p>
+            <div class="motif-grid" id="motif-grid">
+                ${ANOMALY_MOTIFS.map(m => `
+                    <button type="button" class="motif-btn" data-motif="${m.id}" onclick="selectAnomalyMotif('${m.id}')">
+                        ${icon(m.icon, { size: 16 })}<span>${m.label}</span>
+                    </button>
+                `).join('')}
+            </div>
+            <div class="field-label" style="margin-bottom:6px;">Commentaire (optionnel)</div>
+            <textarea id="anomaly-comment" class="field-textarea" placeholder="Précisez si besoin..."></textarea>
+            <div class="modal-actions">
+                <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
+                <button class="btn-modal primary" id="btn-anomaly-submit" disabled onclick="submitAnomalyMotif('${key}')">Choisir un motif</button>
+            </div>
+        </div>
+    `);
+}
+
+export function selectAnomalyMotif(motifId) {
+    selectedAnomalyMotif = ANOMALY_MOTIFS.find(m => m.id === motifId) || null;
+
+    document.querySelectorAll('#motif-grid .motif-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.motif === motifId);
+    });
+
+    const submitBtn = document.getElementById('btn-anomaly-submit');
+    if (submitBtn && selectedAnomalyMotif) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = selectedAnomalyMotif.photoRequired ? 'Prendre la photo' : 'Enregistrer';
+    }
+}
+
+export async function submitAnomalyMotif(key) {
+    if (!selectedAnomalyMotif) return;
+    const comment = (document.getElementById('anomaly-comment')?.value || '').trim();
+    const noteText = comment ? `${selectedAnomalyMotif.label} — ${comment}` : selectedAnomalyMotif.label;
+    const photoRequired = selectedAnomalyMotif.photoRequired;
+    selectedAnomalyMotif = null;
+
+    closeModal();
+
+    if (photoRequired) {
+        // L'anomalie n'est enregistrée qu'une fois la photo prise et confirmée
+        // (voir confirmPhotoAndIndex en mode 'signalement').
+        state.currentAnomalyNote = noteText;
+        takePhoto(key, 'signalement');
+    } else {
+        await saveAnomalyNote(key, noteText);
+    }
+}
+
+async function saveAnomalyNote(key, noteText) {
+    showToast('⏳ Enregistrement du signalement...');
+    const updateData = { note: noteText, anomaly_date: Date.now(), last_modified: Date.now() };
+    try {
+        if (navigator.onLine) {
+            await db.ref(compteurPath(key)).update(updateData);
+            showToast('✅ Signalement enregistré', 2000);
+        } else {
+            await addPendingWrite({ path: compteurPath(key), data: updateData });
+            showToast('📴 Signalement sauvegardé localement', 2500);
+        }
+    } catch (err) {
+        console.error('Erreur signalement:', err);
+        await addPendingWrite({ path: compteurPath(key), data: updateData });
+        showToast('📴 Sauvegardé localement (erreur réseau)', 3000);
+    }
 }
 
 export async function deleteAnomaly(key) {

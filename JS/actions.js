@@ -248,7 +248,7 @@ const ANOMALY_MOTIFS = [
     { id: 'ferme', label: 'Logement fermé', icon: 'lock', photoRequired: false },
     // Compteur définitivement hors service : ne sera plus relevé (à distinguer
     // de « inaccessible »/« fermé », qui sont des situations temporaires).
-    { id: 'horsservice', label: 'Compteur hors service', icon: 'x', photoRequired: true },
+    { id: 'horsservice', label: 'Compteur hors service', icon: 'x', photoRequired: false },
     { id: 'casse', label: 'Compteur cassé', icon: 'alert-triangle', photoRequired: true },
     { id: 'fuite', label: 'Fuite visible', icon: 'droplet', photoRequired: true },
     { id: 'illisible', label: 'Index illisible', icon: 'hash', photoRequired: true },

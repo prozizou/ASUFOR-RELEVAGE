@@ -8,6 +8,7 @@ import { VERY_HIGH_CONSO_THRESHOLD } from './config.js';
 import { takePhoto } from './media.js';
 import { computeConso, computeApaid, isIndexDoubled } from './utils.js';
 import { icon } from './icons.js';
+import { withHistory, renderHistory } from './history.js';
 
 const ANOMALY_REASONS = [
     'Compteur cassé ou endommagé',
@@ -130,6 +131,7 @@ export async function submitReading(key, val, apaid) {
         releve_date: Date.now(),
         last_modified: Date.now()
     };
+    withHistory(updateData, 'reading', { new_index: val });
 
     try {
         if (navigator.onLine) {
@@ -154,9 +156,9 @@ export async function submitReading(key, val, apaid) {
 export function editReading(key) {
     const item = state.clientsCache.find(c => c.key === key);
     if (!item) return;
-    
+
     const data = item.data;
-    
+
     openModal(`
         <div class="modal-content">
             <h3 class="modal-title">${icon('edit')} Modifier le relevé</h3>
@@ -165,16 +167,17 @@ export function editReading(key) {
             </p>
             <div style="margin:16px 0;">
                 <label style="color:var(--text-secondary); font-size:0.85rem;">Ancien index</label>
-                <input type="number" class="login-input" value="${data.last_index}" disabled 
+                <input type="number" class="login-input" value="${data.last_index}" disabled
                        style="margin-bottom:12px; width:100%; border-radius:12px; padding:12px;">
-                
+
                 <label style="color:var(--text-secondary); font-size:0.85rem;">Nouvel index corrigé</label>
-                <input type="number" id="edit-new-index" class="login-input" value="${data.new_index}" 
+                <input type="number" id="edit-new-index" class="login-input" value="${data.new_index}"
                        step="0.1" style="width:100%; border-radius:12px; padding:12px;">
             </div>
+            ${renderHistory(data.history)}
             <div class="modal-actions">
                 <button class="btn-modal secondary" onclick="closeModal()">Annuler</button>
-                <button class="btn-modal primary" onclick="submitEditReading('${key}', ${data.last_index})">
+                <button class="btn-modal primary" onclick="submitEditReading('${key}', ${data.last_index}, ${data.new_index})">
                     Enregistrer
                 </button>
             </div>
@@ -182,7 +185,7 @@ export function editReading(key) {
     `);
 }
 
-export async function submitEditReading(key, oldLastIndex) {
+export async function submitEditReading(key, oldLastIndex, previousNewIndex) {
     const newIndexInput = document.getElementById('edit-new-index');
     const newIndex = parseFloat(newIndexInput.value);
     
@@ -215,6 +218,7 @@ export async function submitEditReading(key, oldLastIndex) {
         releve_date: Date.now(),
         last_modified: Date.now()
     };
+    withHistory(updateData, 'edit', { old_index: previousNewIndex, new_index: newIndex });
 
     try {
         if (navigator.onLine) {
@@ -310,6 +314,7 @@ export async function deleteAnomaly(key) {
     if (!confirm) return;
     
     const updateData = { note: null, photo_url: null, anomaly_date: null, anomaly_reason: null, anomaly_comment: null, last_modified: Date.now() };
+    withHistory(updateData, 'anomaly_cleared');
     if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
     else await addPendingWrite({ path: compteurPath(key), data: updateData });
 }

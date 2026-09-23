@@ -22,6 +22,7 @@ const urlsToCache = [
   'JS/reports.js',
   'JS/pwa.js',
   'JS/icons.js',
+  'JS/history.js',
   // Chemin correct : sous-dossier icons/
   'icons/icon-192.png',
   'icons/icon-512.png'

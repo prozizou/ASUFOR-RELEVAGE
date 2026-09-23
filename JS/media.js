@@ -4,6 +4,7 @@ import { state, compteurPath } from './state.js';
 import { showToast } from './ui.js';
 import { addPendingWrite } from './offlineDb.js';
 import { icon } from './icons.js';
+import { withHistory } from './history.js';
 
 export async function loadTesseractIfNeeded() {
     if (state.tesseractLoaded) return Promise.resolve();
@@ -182,6 +183,7 @@ export async function confirmPhotoAndIndex() {
             updateData.anomaly_reason = motif;
             updateData.anomaly_comment = state.currentAnomalyComment || '';
             updateData.anomaly_date = Date.now();
+            withHistory(updateData, 'anomaly', { reason: motif, comment: state.currentAnomalyComment || '' });
             state.currentAnomalyMotif = null;
             state.currentAnomalyComment = '';
         }

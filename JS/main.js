@@ -5,8 +5,8 @@ import { closeModal, handleOverlayClick, showToast } from './ui.js';
 import { handleOnline, handleOffline, syncPendingWrites } from './sync.js';
 import { login, enterApp, confirmLogout, executeLogout } from './auth.js';
 import { takePhoto, stopCamera, captureImage, retakePhoto, confirmPhotoAndIndex } from './media.js';
-import { openKeypad, keypadInput, validateKeypad, confirmReading, submitReading, editReading, submitEditReading, reportWithPhoto, deleteAnomaly } from './actions.js';
-import { setFilter, applyFilters } from './clients.js';
+import { openKeypad, keypadInput, validateKeypad, confirmReading, submitReading, editReading, submitEditReading, reportAnomaly, selectAnomalyMotif, submitAnomalyMotif, deleteAnomaly } from './actions.js';
+import { setFilter, applyFilters, renderFilterTabs } from './clients.js';
 import { showReport, shareReport } from './reports.js';
 import { createPwaBanner } from './pwa.js';
 
@@ -17,6 +17,8 @@ export const db = firebase.database();
 // ==================== INITIALISATION DE L'APP ====================
 async function initializeApp() {
     console.log(`🚀 Initialisation ASUFOR Relevage v${APP_VERSION} (Modulaire)`);
+
+    renderFilterTabs();
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -91,7 +93,9 @@ window.captureImage = captureImage;
 window.retakePhoto = retakePhoto;
 window.confirmPhotoAndIndex = confirmPhotoAndIndex;
 
-window.reportWithPhoto = reportWithPhoto;
+window.reportAnomaly = reportAnomaly;
+window.selectAnomalyMotif = selectAnomalyMotif;
+window.submitAnomalyMotif = submitAnomalyMotif;
 window.deleteAnomaly = deleteAnomaly;
 
 window.showReport = showReport;

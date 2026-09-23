@@ -192,27 +192,36 @@ body {
 #search:focus { border-color: var(--accent); outline: none; }
 
 /* ====== CARDS ====== */
+/* L'espacement entre cartes est géré par #list (gap), pas par la marge de
+   .card, pour un rendu prévisible (pas de fusion de marges) et un léger
+   séparateur constant, même quand les cartes sont très compactes. */
+#list { display: flex; flex-direction: column; gap: 7px; padding-bottom: 4px; }
+/* Les cartes squelettes sont regroupées dans un wrapper (#list-skeletons),
+   lui-même unique enfant flex de #list : il doit reproduire le même gap. */
+#list-skeletons { display: flex; flex-direction: column; gap: 7px; }
 .card {
     background: var(--bg-card);
-    margin: 6px 14px;
-    padding: 8px 14px;
+    margin: 0 14px;
+    padding: 7px 14px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-1);
     border-left: 3px solid transparent;
 }
-.card.done { border-left-color: var(--success); padding-bottom: 6px; }
+.card.done { border-left-color: var(--success); padding-bottom: 5px; }
 
-.client-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 8px; }
+.client-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px; }
 .client-name { font-weight: 700; font-size: 0.95rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .client-header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .compteur-num { display: inline-flex; align-items: center; font-size: 0.7rem; background: var(--bg-elevated); padding: 3px 8px; border-radius: 999px; color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
 
-.old-index { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px; }
+.old-index { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 5px; }
 .old-index b { color: var(--text-primary); font-weight: 700; }
 
 /* Ligne de données (relevé terminé) : Index · Conso. · Montant, clairement labellisés.
-   Compacte à dessein pour ne jamais avoir besoin de passer à la ligne. */
-.data-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin: 1px 0; font-size: 0.82rem; }
+   Compacte à dessein pour ne jamais avoir besoin de passer à la ligne, et
+   toujours placée juste après l'en-tête pour un alignement vertical
+   identique sur toutes les cartes (les badges viennent après, pas avant). */
+.data-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin: 1px 0 4px; font-size: 0.82rem; }
 .data-item { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
 .data-item .icon { align-self: center; color: var(--text-tertiary); }
 .data-label { color: var(--text-secondary); font-weight: 500; font-size: 0.88em; }
@@ -221,13 +230,13 @@ body {
 .data-sep { color: var(--border); }
 
 /* ZONE DE SAISIE — libellée, unité affichée, tap pour ouvrir le pavé */
-.saisie-container { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.saisie-container { margin-top: 5px; display: flex; flex-direction: column; gap: 5px; }
 .field-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.02em; }
 .index-box {
     background: var(--bg-elevated);
     border: 1.5px dashed var(--border);
     border-radius: var(--radius-md);
-    padding: 6px 14px;
+    padding: 5px 14px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -266,17 +275,22 @@ body {
     color: var(--accent-ink);
     cursor: pointer;
     padding: 12px;
-    box-shadow: var(--shadow-1);
+    /* État actif bien visible : halo coloré, nettement différent du gris
+       plat de l'état désactivé ci-dessous. */
+    box-shadow: 0 3px 10px var(--accent-glow);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    transition: box-shadow 0.15s, transform 0.1s;
 }
+.btn-ok:active { transform: scale(0.98); }
 .btn-ok:disabled {
     background: var(--bg-elevated-strong);
     color: var(--text-tertiary);
     box-shadow: none;
     cursor: not-allowed;
+    transform: none;
 }
 
 /* Badges d'alerte (anomalie / photo) : toujours juste sous l'en-tête de
@@ -307,10 +321,10 @@ body {
 .btn-edit {
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     padding: 3px 0 0;
-    font-size: 0.74rem;
-    font-weight: 600;
+    font-size: 0.76rem;
+    font-weight: 700;
     margin-top: 1px;
     cursor: pointer;
     display: inline-flex;
@@ -318,7 +332,7 @@ body {
     gap: 4px;
 }
 .btn-edit .icon { width: 12px; height: 12px; color: var(--accent-dark); }
-.btn-edit:active { color: var(--text-primary); }
+.btn-edit:active { color: var(--accent-dark); }
 
 .btn-photo { background: var(--bg-elevated); border: none; border-radius: var(--radius-sm); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; cursor: pointer; }
 .btn-photo.danger { background: var(--danger-bg); color: var(--danger); }

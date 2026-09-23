@@ -246,6 +246,9 @@ export function confirmDialog(title, message, confirmText = 'Oui', cancelText = 
 const ANOMALY_MOTIFS = [
     { id: 'inaccessible', label: 'Compteur inaccessible', icon: 'ban', photoRequired: false },
     { id: 'ferme', label: 'Logement fermé', icon: 'lock', photoRequired: false },
+    // Compteur définitivement hors service : ne sera plus relevé (à distinguer
+    // de « inaccessible »/« fermé », qui sont des situations temporaires).
+    { id: 'horsservice', label: 'Compteur hors service', icon: 'x', photoRequired: true },
     { id: 'casse', label: 'Compteur cassé', icon: 'alert-triangle', photoRequired: true },
     { id: 'fuite', label: 'Fuite visible', icon: 'droplet', photoRequired: true },
     { id: 'illisible', label: 'Index illisible', icon: 'hash', photoRequired: true },

@@ -223,10 +223,10 @@ function createCard(key, data) {
         const anomalyBadge = anomaly ? `<div class="anomaly-badge">${icon('alert-triangle', { size: 12 })} Anomalie signalée</div>` : '';
         const photoBadge = data.photo_url ? `<div class="anomaly-badge photo-badge">${icon('camera', { size: 12 })} Photo jointe</div>` : '';
 
+        // La ligne Index/Conso./Montant vient toujours juste après l'en-tête,
+        // avant les badges : elle garde ainsi la même position verticale sur
+        // toutes les cartes, qu'un badge soit présent ou non.
         contentHtml = `
-            ${anomalyBadge}
-            ${photoBadge}
-            ${levelBadge}
             <div class="data-row">
                 <span class="data-item"><span class="data-label">Index</span> <span class="data-value">${Number(data.new_index).toLocaleString('fr-FR')}</span></span>
                 <span class="data-sep">·</span>
@@ -234,6 +234,9 @@ function createCard(key, data) {
                 <span class="data-sep">·</span>
                 <span class="data-item"><span class="data-value amount">${apaid.toLocaleString('fr-FR')} F</span></span>
             </div>
+            ${anomalyBadge}
+            ${photoBadge}
+            ${levelBadge}
             <button class="btn-edit" onclick="editReading('${key}')">${icon('edit', { size: 12 })} Modifier</button>
         `;
     } else {

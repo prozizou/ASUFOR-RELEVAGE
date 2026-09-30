@@ -2,7 +2,7 @@ import globals from 'globals';
 
 export default [
     {
-        ignores: ['node_modules/**', 'icons/**'],
+        ignores: ['node_modules/**', 'functions/node_modules/**', 'icons/**'],
     },
     {
         files: ['JS/**/*.js', 'sw.js'],
@@ -25,7 +25,7 @@ export default [
         },
     },
     {
-        files: ['scripts/**/*.js'],
+        files: ['scripts/**/*.js', 'functions/**/*.js'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',

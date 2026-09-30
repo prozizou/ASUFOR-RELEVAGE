@@ -1,16 +1,45 @@
-import { db } from './main.js';
+import { db } from './firebase.js';
 import { getPendingWrites, clearPendingWrite, updatePendingWriteAttempt, setSyncMetadata, getSyncMetadata } from './offlineDb.js';
 import { showToast, updateOnlineStatus } from './ui.js';
 import { icon } from './icons.js';
 import { state } from './state.js';
+import { isPermissionDenied } from './agentAuth.js';
+import { getAgentAuthStatus } from './session.js';
+
+// Une écriture en attente n'est rejouée que par l'agent qui l'a faite, sur son
+// forage : sur un téléphone partagé, les relevés d'un autre agent restent en
+// file jusqu'à sa prochaine connexion (ils seraient refusés par les règles).
+export function belongsToAgent(op, agentId, forageKey) {
+    return !!op && op.agentId === agentId
+        && typeof op.path === 'string'
+        && op.path.startsWith(`Asufor/${forageKey}/compteurs/`);
+}
+
+async function getCurrentAgentWrites() {
+    const all = await getPendingWrites();
+    return all.filter(op => belongsToAgent(op, state.currentAgentId, state.currentForageKey));
+}
+
+let syncInProgress = false;
 
 export async function syncPendingWrites() {
     if (!navigator.onLine) {
         console.log('📴 Hors ligne, synchronisation impossible');
         return;
     }
-    
-    const pending = await getPendingWrites();
+    // Déclenchée par le retour réseau, l'intervalle de 60 s et chaque relevé :
+    // un seul passage à la fois, sinon une même écriture serait envoyée deux fois.
+    if (syncInProgress) return;
+    syncInProgress = true;
+    try {
+        await runSync();
+    } finally {
+        syncInProgress = false;
+    }
+}
+
+async function runSync() {
+    const pending = await getCurrentAgentWrites();
     if (pending.length === 0) {
         // Rien à envoyer, mais on est en ligne : c'est un point de synchro
         // valide, à horodater pour l'info « Dernière synchro » (sinon elle
@@ -21,6 +50,19 @@ export async function syncPendingWrites() {
         return;
     }
     
+    // Sans jeton agent valide, les règles refuseraient tout : on garde la file
+    // intacte et on demande une reconnexion (voir auth.js#requireReauth).
+    const authStatus = await getAgentAuthStatus(firebase.auth(), {
+        agentId: state.currentAgentId,
+        forageKey: state.currentForageKey,
+    });
+    if (authStatus !== 'ok') {
+        console.warn(`🔒 Synchronisation suspendue (authentification : ${authStatus})`);
+        updateSyncIndicator(pending.length);
+        window.dispatchEvent(new CustomEvent('agent-reauth-required'));
+        return;
+    }
+
     console.log(`🔄 Synchronisation de ${pending.length} opérations en attente...`);
     updateSyncIndicator(pending.length);
     
@@ -52,10 +94,17 @@ export async function syncPendingWrites() {
             
         } catch (err) {
             console.error(`❌ Erreur synchro op ${op.id}:`, err);
-            await updatePendingWriteAttempt(op.id, (op.attempts || 0) + 1);
             if (err.code === 'NETWORK_ERROR' || err.message?.includes('network')) {
+                // Coupure réseau : pas une tentative « ratée » de l'opération, qui
+                // ne doit pas être abandonnée pour autant.
                 console.log('📡 Erreur réseau, pause de la synchronisation');
                 break;
+            }
+            await updatePendingWriteAttempt(op.id, (op.attempts || 0) + 1);
+            if (isPermissionDenied(err)) {
+                // Compteur retiré de la tournée de l'agent, par exemple : on passe
+                // aux suivantes (abandon après MAX_ATTEMPTS refus).
+                console.warn(`⛔ Opération ${op.id} refusée par les règles (permission_denied)`);
             }
         }
     }
@@ -64,7 +113,7 @@ export async function syncPendingWrites() {
         await clearPendingWrite(id);
     }
     
-    const remaining = await getPendingWrites();
+    const remaining = await getCurrentAgentWrites();
     updateSyncIndicator(remaining.length);
     await setSyncMetadata('lastSync', Date.now());
     
@@ -119,7 +168,7 @@ async function updateSyncDetail() {
 // où syncPendingWrites() ne s'exécute pas et ne mettrait donc pas l'indicateur à jour).
 export async function refreshSyncIndicator() {
     try {
-        const pending = await getPendingWrites();
+        const pending = await getCurrentAgentWrites();
         updateSyncIndicator(pending.length);
     } catch (e) {
         console.warn('Impossible de lire la file hors ligne:', e);

@@ -1,10 +1,11 @@
 // js/clients.js
-import { db } from './main.js';
+import { db } from './firebase.js';
 import { state, compteursBasePath } from './state.js';
 import { PAGE_SIZE, VERY_HIGH_CONSO_THRESHOLD, HIGH_CONSO_THRESHOLD } from './config.js';
 import { escapeHtml } from './ui.js';
 import { icon } from './icons.js';
 import { isDone, hasAnomaly, computeConso, computeApaid } from './utils.js';
+import { isPermissionDenied } from './agentAuth.js';
 
 const FILTERS = [
     { id: 'all', label: 'Tous', icon: 'list' },
@@ -33,7 +34,15 @@ export function loadClientsData(agentId) {
             processSnapshot(snapshot);
             cacheClientsData(agentId, snapshot.val());
         },
-        (error) => console.error('Erreur chargement clients:', error)
+        (error) => {
+            // Listener annulé par Firebase : la liste en cache reste affichée.
+            console.error('Erreur chargement clients:', error);
+            state.activeQueryRef = null;
+            state.activeCallback = null;
+            if (isPermissionDenied(error)) {
+                window.dispatchEvent(new CustomEvent('agent-access-denied'));
+            }
+        }
     );
 }
 

@@ -6,6 +6,16 @@ const STORE_NAME = 'pendingWrites';
 const SYNC_STORE = 'syncMetadata';
 let dbPromise;
 
+// Résout quand la transaction IndexedDB est réellement validée (écriture
+// durable) — IDBTransaction n'a pas de propriété « complete ».
+function txDone(tx) {
+    return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+    });
+}
+
 export function openOfflineDB() {
     if (!dbPromise) {
         dbPromise = new Promise((resolve, reject) => {
@@ -34,11 +44,12 @@ export async function addPendingWrite(operation) {
         ...operation,
         timestamp: Date.now(),
         attempts: 0,
-        agentId: state.currentAgentId
+        agentId: state.currentAgentId,
+        forageKey: state.currentForageKey
     };
     store.add(opWithMeta);
+    await txDone(tx);
     window.dispatchEvent(new CustomEvent('offline-queue-changed'));
-    return tx.complete;
 }
 
 export async function getPendingWrites() {
@@ -57,8 +68,8 @@ export async function clearPendingWrite(id) {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     store.delete(id);
+    await txDone(tx);
     window.dispatchEvent(new CustomEvent('offline-queue-changed'));
-    return tx.complete;
 }
 
 export async function updatePendingWriteAttempt(id, attempts) {
@@ -97,5 +108,5 @@ export async function setSyncMetadata(key, value) {
     const tx = db.transaction(SYNC_STORE, 'readwrite');
     const store = tx.objectStore(SYNC_STORE);
     store.put({ key, value });
-    return tx.complete;
+    return txDone(tx);
 }

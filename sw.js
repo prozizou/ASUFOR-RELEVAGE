@@ -10,6 +10,7 @@ const urlsToCache = [
   'manifest.json',
   // ✅ Chemin correct : sous-dossier JS/
   'JS/main.js',
+  'JS/firebase.js',
   'JS/config.js',
   'JS/state.js',
   'JS/ui.js',
@@ -19,6 +20,11 @@ const urlsToCache = [
   'JS/media.js',
   'JS/sync.js',
   'JS/offlineDb.js',
+  'JS/agentAuth.js',
+  'JS/session.js',
+  'JS/writes.js',
+  'JS/utils.js',
+  'JS/icons.js',
   'JS/reports.js',
   'JS/pwa.js',
   // ✅ Chemin correct : sous-dossier icons/
@@ -44,9 +50,13 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Ne pas intercepter les requêtes Firebase ou Cloudinary
+  // Ne mettre en cache que les GET (la connexion agent est un POST)
+  if (event.request.method !== 'GET') return;
+
+  // Ne pas intercepter les requêtes Firebase (RTDB, Auth, Cloud Functions) ou Cloudinary
   if (
     event.request.url.includes('firebaseio.com') ||
+    event.request.url.includes('cloudfunctions.net') ||
     event.request.url.includes('googleapis.com') ||
     event.request.url.includes('cloudinary.com')
   ) {

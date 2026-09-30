@@ -15,7 +15,7 @@ Les données sont organisées par site sous `Asufor/{forageKey}/` (ex. `Asufor/A
 Le client ne lit **jamais** les fiches agents ni aucun code (clair ou haché) :
 
 1. L'agent saisit téléphone + code 6 chiffres (`JS/auth.js#login`).
-2. L'app appelle la Cloud Function **`agentLogin`** (`functions/`, région `europe-west1`) : elle cherche l'agent par `agent_tel` sur tous les forages (ou sur le forage choisi), vérifie `passcode_hash` côté serveur, et renvoie un **Firebase Custom Token** portant les claims `{ role: "agent", forageKey, agentId }` (uid `agent:<forageKey>:<agentId>`).
+2. L'app appelle la fonction Vercel **`/api/agent-login`** (`api/agent-login.js`) : elle cherche l'agent par `agent_tel` sur tous les forages (ou sur le forage choisi), vérifie `passcode_hash` côté serveur, et renvoie un **Firebase Custom Token** portant les claims `{ role: "agent", forageKey, agentId }` (uid `agent:<forageKey>:<agentId>`).
 3. Le client fait `signInWithCustomToken()` ; la session Firebase est persistée par le SDK. `forageKey`/`agentId` et le profil sont gardés dans `localStorage` (`JS/session.js`) pour le mode hors ligne.
 4. Les règles RTDB (`database.rules.json`) n'accordent à l'agent que : le branding de **son** forage, **sa** fiche (sans `passcode`/`passcode_hash`), la lecture de **sa** tournée (`compteurs` filtrés par `agent_id == auth.token.agentId`) et l'écriture des seuls champs de relevé (`new_index`, `apaid`, `statut`, `releve_date`, `last_modified`, `note`, `photo_url`, `anomaly_date`) de **ses** compteurs. Aucun accès aux autres forages, archives, comptabilité ou administration.
 
@@ -23,14 +23,14 @@ Détails :
 
 - **Multi-forage** : si le même téléphone + code existe sur plusieurs forages, la fonction renvoie `AMBIGUOUS_FORAGE` avec la liste des forages et l'app demande de choisir.
 - **Erreurs** traduites en messages clairs (`JS/agentAuth.js#loginErrorMessage`) : code invalide, agent introuvable, aucun code configuré, trop de tentatives, `permission_denied`, hors ligne, session expirée.
-- **Anti force brute** : 5 échecs par numéro (30 par IP) bloquent 15 min (nœud serveur `agent_login_guard`, inaccessible aux clients).
+- **Anti force brute** : 5 échecs par numéro (30 par IP) bloquent 15 min (nœud RTDB `agent_login_guard`, inaccessible aux clients).
 - **Codes legacy** : un agent qui a encore un `passcode` en clair est accepté par la fonction (lecture serveur uniquement), qui le convertit aussitôt en `passcode_hash`.
 - **Hors ligne** : aucun code n'est stocké en clair. Après une première connexion en ligne, un vérificateur PBKDF2 salé (téléphone + code) permet de se reconnecter sans réseau ; les relevés vont dans la file IndexedDB et partent au retour du réseau, dès qu'un jeton agent valide est disponible (sinon l'app redemande le code sans toucher à la file).
 - **Anciennes sessions** (connexion anonyme + code en clair dans `localStorage`, ≤ 13.9) : échangées automatiquement contre un Custom Token au premier démarrage en ligne, puis le code en clair est supprimé.
 
 ## Fonctionnalités
 
-- Connexion agent par numéro de téléphone + code (6 chiffres) via Cloud Function + Custom Token — le forage est déterminé automatiquement (choix proposé en cas d'ambiguïté), avec reconnexion hors ligne sur l'appareil déjà utilisé.
+- Connexion agent par numéro de téléphone + code (6 chiffres) via fonction Vercel + Custom Token — le forage est déterminé automatiquement (choix proposé en cas d'ambiguïté), avec reconnexion hors ligne sur l'appareil déjà utilisé.
 - Liste des clients filtrable (Tous / En attente / Relevés / Anomalies) et recherche.
 - Saisie de l'index via pavé numérique custom, avec validation (nouvel index > ancien index).
 - Capture photo du compteur avec lecture automatique de l'index par OCR (Tesseract.js), modifiable avant validation.
@@ -65,14 +65,15 @@ JS/
   offlineDb.js        Accès IndexedDB (file d'attente hors ligne)
   reports.js         Rapport de tournée
   pwa.js             Bannière d'installation PWA
-functions/           Cloud Function agentLogin (Custom Token agent)
+api/                 Fonction Vercel agent-login (Custom Token agent), logique dans api/_lib/
 database.rules.json  Règles RTDB (celles d'ADMIN-FORAGE + accès agent par claims)
 firebase.json        Config Firebase CLI (règles, functions, émulateur)
 scripts/
   sync-version.js    Script de synchronisation de version (voir ci-dessous)
 tests/
   utils.test.js      Tests unitaires des helpers métier
-  agentLogin.test.js Cloud Function : login valide/invalide, mauvais téléphone/forage, anti force brute
+  agentLogin.test.js Logique serveur : login valide/invalide, mauvais téléphone/forage, anti force brute
+  agentLoginRoute.test.js Route Vercel : statuts HTTP, CORS
   agentAuth.test.js  Client : erreurs, session, vérificateur hors ligne, firebaseConfig
   sync.test.js       Hors ligne puis resynchronisation (IndexedDB simulée)
   rules/             Règles RTDB sur l'émulateur (npm run test:rules)
@@ -98,7 +99,6 @@ npm install
 | `npm run format:check` | Vérifie le formatage sans modifier les fichiers |
 | `npm test` | Exécute les tests unitaires (Vitest) |
 | `npm run test:rules` | Teste `database.rules.json` sur l'émulateur Realtime Database (Java requis) |
-| `npm run deploy:functions` | Déploie la Cloud Function `agentLogin` |
 | `npm run sync-version` | Propage la version de `package.json` vers `config.js`, `sw.js` et `index.html` |
 
 ## Gestion de version
@@ -127,7 +127,7 @@ npm run sync-version
 
 ## Configuration Firebase / Cloudinary
 
-Les identifiants applicatifs (clé API Firebase publique, cloud name Cloudinary, upload preset) se trouvent dans `JS/config.js` et `JS/media.js`. Ce ne sont **pas des secrets serveur** (la clé API Firebase Web est publique par design) : la sécurité repose sur la Cloud Function `agentLogin` et les règles RTDB.
+Les identifiants applicatifs (clé API Firebase publique, cloud name Cloudinary, upload preset) se trouvent dans `JS/config.js` et `JS/media.js`. Ce ne sont **pas des secrets serveur** (la clé API Firebase Web est publique par design) : la sécurité repose sur la fonction `api/agent-login.js` et les règles RTDB.
 
 ### appId Web
 
@@ -135,11 +135,13 @@ Les identifiants applicatifs (clé API Firebase publique, cloud name Cloudinary,
 
 ### Mise en service de l'authentification agent
 
-1. **Cloud Function** : `cd functions && npm install`, puis `npm run deploy:functions` (projet sur l'offre Blaze). Le compte de service d'exécution doit avoir le rôle **Service Account Token Creator** (`roles/iam.serviceAccountTokenCreator`) pour signer les Custom Tokens.
+1. **Fonction Vercel** `api/agent-login.js` (déployée avec le site, aucune offre payante Firebase requise). Dans Vercel → Settings → Environment Variables :
+   - `FIREBASE_SERVICE_ACCOUNT` : clé de service Firebase (Console Firebase → Paramètres → Comptes de service → Générer une clé), JSON brut ou encodé en base64. **Secret** : ne jamais la mettre dans le dépôt.
+   - `FIREBASE_DATABASE_URL` (optionnel) et `ALLOWED_ORIGINS` (uniquement si la PWA n'est pas servie par ce même projet Vercel ; sinon `AGENT_LOGIN_URL` dans `JS/config.js` doit être l'URL absolue de l'API).
 2. **Règles RTDB** : `database.rules.json` = règles d'ADMIN-FORAGE + section agents. Les deux dépôts partagent la même base : reporter ces modifications dans `ADMIN-FORAGE/database.rules.json` (source de vérité) avant tout `firebase deploy --only database`, sinon le dernier déploiement écrase l'autre. Ne déployer que les functions depuis ce dépôt tant que ce n'est pas fait.
 3. **Index** : `Asufor/{forageKey}/agents` indexé sur `agent_tel` (déjà présent) et `compteurs` sur `agent_id` (ajouté).
 4. **Auth** : ajouter le domaine de la PWA dans Authentication → Settings → Authorized domains.
-5. Recommandé : activer **App Check** puis passer `enforceAppCheck: true` dans `functions/index.js`.
+5. Le compte de service de la clé n'a pas besoin d'autre rôle que ceux par défaut d'Admin SDK (signature du Custom Token en local).
 6. Toujours recommandé : un upload preset Cloudinary *signé* plutôt que *unsigned*.
 
 ## Tests
@@ -148,7 +150,7 @@ Les identifiants applicatifs (clé API Firebase publique, cloud name Cloudinary,
 npm test
 ```
 
-Les tests couvrent les helpers métier (`JS/utils.js`), la Cloud Function `agentLogin` (login valide/invalide, mauvais téléphone, mauvais forage, ambiguïté multi-forage, code legacy, anti force brute), la connexion côté client (messages d'erreur, session, vérificateur hors ligne, `firebaseConfig`) et le scénario hors ligne → resynchronisation.
+Les tests couvrent les helpers métier (`JS/utils.js`), la logique serveur `agentLogin` et sa route HTTP (login valide/invalide, mauvais téléphone, mauvais forage, ambiguïté multi-forage, code legacy, anti force brute), la connexion côté client (messages d'erreur, session, vérificateur hors ligne, `firebaseConfig`) et le scénario hors ligne → resynchronisation.
 
 Les règles RTDB se testent sur l'émulateur :
 
@@ -160,7 +162,7 @@ npm run test:rules
 
 ## Déploiement
 
-Application statique : héberger `index.html`, `style.css`, `manifest.json`, `sw.js`, `offline.html`, `JS/` et `icons/` sur n'importe quel hébergeur de fichiers statiques (GitHub Pages, Firebase Hosting, Netlify, etc.). Aucune étape de build n'est requise pour l'exécution — seul l'outillage de développement (`npm install`) nécessite Node.js. La Cloud Function `agentLogin` (dossier `functions/`) se déploie séparément (voir plus haut).
+Application statique : héberger `index.html`, `style.css`, `manifest.json`, `sw.js`, `offline.html`, `JS/` et `icons/` sur n'importe quel hébergeur de fichiers statiques (GitHub Pages, Firebase Hosting, Netlify, etc.). Aucune étape de build n'est requise pour l'exécution — seul l'outillage de développement (`npm install`) nécessite Node.js. La fonction `api/agent-login.js` est déployée par Vercel avec le site.
 
 ## Notes sur l'outillage
 

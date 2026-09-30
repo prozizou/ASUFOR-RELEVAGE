@@ -1,4 +1,4 @@
-// functions/src/agentLogin.js
+// api/_lib/agentLogin.js
 // Logique métier de la connexion agent (téléphone + code 6 chiffres),
 // sans dépendance Firebase : la base et l'émission du jeton sont injectées,
 // ce qui permet de tester ce module directement (voir tests/agentLogin.test.js).

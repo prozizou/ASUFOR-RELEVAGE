@@ -1,9 +1,15 @@
 {
-  "database": { "rules": "database.rules.json" },
-  "functions": [{ "source": "functions", "codebase": "relevage" }],
+  "database": {
+    "rules": "database.rules.json"
+  },
   "emulators": {
-    "database": { "host": "127.0.0.1", "port": 9000 },
-    "ui": { "enabled": false },
+    "database": {
+      "host": "127.0.0.1",
+      "port": 9000
+    },
+    "ui": {
+      "enabled": false
+    },
     "singleProjectMode": true
   }
 }

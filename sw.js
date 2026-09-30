@@ -1,7 +1,7 @@
 // ✅ sw.js — placé à la RACINE du projet (même niveau qu'index.html)
 // Les chemins doivent refléter la vraie structure : JS/ pour les scripts, icons/ pour les images
 
-const CACHE_NAME = 'asufor-v13.9.0';
+const CACHE_NAME = 'asufor-v13.10.0';
 
 const urlsToCache = [
   'index.html',
@@ -56,7 +56,7 @@ self.addEventListener('fetch', event => {
   // Ne pas intercepter les requêtes Firebase (RTDB, Auth, Cloud Functions) ou Cloudinary
   if (
     event.request.url.includes('firebaseio.com') ||
-    event.request.url.includes('cloudfunctions.net') ||
+    event.request.url.includes('/api/') ||
     event.request.url.includes('googleapis.com') ||
     event.request.url.includes('cloudinary.com')
   ) {

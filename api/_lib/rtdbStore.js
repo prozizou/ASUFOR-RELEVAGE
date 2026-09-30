@@ -1,4 +1,4 @@
-// functions/src/rtdbStore.js
+// api/_lib/rtdbStore.js
 // Adaptateur Realtime Database (Admin SDK) pour createAgentLogin.
 // L'Admin SDK contourne les règles : ce code ne tourne que côté serveur.
 

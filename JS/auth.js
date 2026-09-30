@@ -1,5 +1,5 @@
 // js/auth.js
-// Connexion agent : téléphone + code 6 chiffres → Cloud Function agentLogin
+// Connexion agent : téléphone + code 6 chiffres → fonction Vercel /api/agent-login
 // (vérifie agent_tel + passcode_hash côté serveur) → Custom Token portant les
 // claims { role: 'agent', forageKey, agentId } → signInWithCustomToken().
 // Le client ne lit jamais les fiches agents ni aucun code (clair ou haché).

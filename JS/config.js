@@ -29,6 +29,7 @@ export const firebaseConfig = {
     ...(isValidWebAppId(FIREBASE_WEB_APP_ID) ? { appId: FIREBASE_WEB_APP_ID } : {}),
 };
 
-// Cloud Function de connexion agent (functions/index.js → agentLogin).
-export const FUNCTIONS_REGION = 'europe-west1';
-export const AGENT_LOGIN_URL = `https://${FUNCTIONS_REGION}-${firebaseConfig.projectId}.cloudfunctions.net/agentLogin`;
+// Fonction Vercel de connexion agent (api/agent-login.js). Chemin relatif : la PWA et
+// l'API sont servies par le même projet Vercel. Si la PWA est ailleurs, mettre l'URL
+// absolue du projet Vercel et déclarer l'origine de la PWA dans ALLOWED_ORIGINS.
+export const AGENT_LOGIN_URL = '/api/agent-login';

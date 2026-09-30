@@ -1,8 +1,8 @@
-// Cloud Function agentLogin (functions/src/agentLogin.js) avec une base en mémoire.
+// Logique serveur agentLogin (api/_lib/agentLogin.js) avec une base en mémoire.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     createAgentLogin, hashAgentPasscode, normalizePhone, REASONS, LOGIN_LIMITS,
-} from '../functions/src/agentLogin.js';
+} from '../api/_lib/agentLogin.js';
 
 // Vecteur de référence calculé avec ADMIN-FORAGE/crypto.js#hashAgentPasscode('123456').
 const HASH_123456 = '3d38dcc62a8f5a0a350007e95c932c3d83d2bb1599e436414d355351679679ec';
@@ -61,7 +61,7 @@ async function expectReason(promise, reason, code) {
     await expect(promise).rejects.toMatchObject({ reason, ...(code ? { code } : {}) });
 }
 
-describe('agentLogin (Cloud Function)', () => {
+describe('agentLogin (logique serveur)', () => {
     let store;
     let createCustomToken;
     let login;

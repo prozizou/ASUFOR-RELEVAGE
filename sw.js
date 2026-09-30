@@ -56,7 +56,7 @@ self.addEventListener('fetch', event => {
   // Ne pas intercepter les requêtes Firebase (RTDB, Auth, Cloud Functions) ou Cloudinary
   if (
     event.request.url.includes('firebaseio.com') ||
-    event.request.url.includes('cloudfunctions.net') ||
+    event.request.url.includes('/api/') ||
     event.request.url.includes('googleapis.com') ||
     event.request.url.includes('cloudinary.com')
   ) {

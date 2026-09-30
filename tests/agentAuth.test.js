@@ -192,8 +192,8 @@ describe('firebaseConfig', () => {
         expect(isValidWebAppId('')).toBe(false);
     });
 
-    it('pointe la connexion agent vers la Cloud Function du projet', () => {
+    it('pointe la connexion agent vers la fonction Vercel', () => {
         expect(firebaseConfig.messagingSenderId).toBe('621722220561');
-        expect(AGENT_LOGIN_URL).toBe('https://europe-west1-asufor-67a06.cloudfunctions.net/agentLogin');
+        expect(AGENT_LOGIN_URL).toBe('/api/agent-login');
     });
 });

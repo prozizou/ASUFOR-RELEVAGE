@@ -1,5 +1,5 @@
 // js/agentAuth.js
-// Connexion agent : appel de la Cloud Function « agentLogin » (téléphone +
+// Connexion agent : appel de la fonction Vercel /api/agent-login (téléphone +
 // code → Custom Token), traduction des erreurs en messages clairs, et
 // vérificateur local (PBKDF2) pour la reconnexion hors ligne.
 // Aucune dépendance au DOM ni au SDK Firebase : testable sous Node.
@@ -49,7 +49,7 @@ export class AgentAuthError extends Error {
     }
 }
 
-// Même normalisation que la Cloud Function (functions/src/agentLogin.js).
+// Même normalisation que la fonction serveur (api/_lib/agentLogin.js).
 export function normalizePhone(value) {
     const digits = String(value ?? '').replace(/\D/g, '');
     if (digits.length === 14 && digits.startsWith('00221')) return digits.slice(5);
@@ -76,7 +76,7 @@ const STATUS_TO_REASON = {
 };
 
 /**
- * Appelle la Cloud Function agentLogin (protocole callable, via fetch).
+ * Appelle la fonction Vercel /api/agent-login (POST { data }, réponse { result } ou { error }).
  * @returns {Promise<{token: string, forageKey: string, agentId: string, profile: object}>}
  */
 export async function requestAgentToken({ phone, code, forageKey }, { url, fetchImpl = globalThis.fetch, timeoutMs = 15000 } = {}) {

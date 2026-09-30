@@ -1,9 +1,8 @@
 // js/media.js
-import { db } from './main.js';
-import { state, compteurPath } from './state.js';
+import { state } from './state.js';
 import { showToast } from './ui.js';
 import { icon } from './icons.js';
-import { addPendingWrite } from './offlineDb.js';
+import { saveCompteurUpdate, toastSaveResult } from './writes.js';
 
 export async function loadTesseractIfNeeded() {
     if (state.tesseractLoaded) return Promise.resolve();
@@ -183,10 +182,11 @@ export async function confirmPhotoAndIndex() {
             updateData.anomaly_date = Date.now();
             state.currentAnomalyNote = null;
         }
-        if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
-        else await addPendingWrite({ path: compteurPath(key), data: updateData });
+        const saveResult = await saveCompteurUpdate(key, updateData);
 
-        if (mode === 'signalement') {
+        if (saveResult === 'denied') {
+            toastSaveResult(saveResult);
+        } else if (mode === 'signalement') {
             showToast('📤 Signalement envoyé à l\'administration !');
         } else {
             showToast('✅ Photo envoyée à l\'administration !');

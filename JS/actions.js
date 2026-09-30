@@ -1,9 +1,8 @@
 // js/actions.js
-import { db } from './main.js';
-import { state, compteurPath } from './state.js';
+import { state } from './state.js';
 import { showToast, openModal, closeModal, escapeHtml } from './ui.js';
 import { icon } from './icons.js';
-import { addPendingWrite } from './offlineDb.js';
+import { saveCompteurUpdate, toastSaveResult } from './writes.js';
 import { syncPendingWrites } from './sync.js';
 import { VERY_HIGH_CONSO_THRESHOLD } from './config.js';
 import { takePhoto } from './media.js';
@@ -121,24 +120,11 @@ export async function submitReading(key, val, apaid) {
         last_modified: Date.now()
     };
     
-    try {
-        if (navigator.onLine) {
-            await db.ref(compteurPath(key)).update(updateData);
-            showToast('✅ Relevé enregistré !', 2000);
-        } else {
-            await addPendingWrite({ path: compteurPath(key), data: updateData });
-            showToast('📴 Sauvegardé localement', 2000);
-        }
-        
-        setTimeout(() => {
-            if (navigator.onLine) syncPendingWrites();
-        }, 1000);
-        
-    } catch (err) {
-        console.error('Erreur enregistrement:', err);
-        await addPendingWrite({ path: compteurPath(key), data: updateData });
-        showToast('📴 Sauvegardé localement (erreur réseau)', 3000);
-    }
+    toastSaveResult(await saveCompteurUpdate(key, updateData), '✅ Relevé enregistré !');
+
+    setTimeout(() => {
+        if (navigator.onLine) syncPendingWrites();
+    }, 1000);
 }
 
 export function editReading(key) {
@@ -202,19 +188,7 @@ export async function submitEditReading(key, oldLastIndex) {
         last_modified: Date.now()
     };
     
-    try {
-        if (navigator.onLine) {
-            await db.ref(compteurPath(key)).update(updateData);
-            showToast('✅ Modification enregistrée !');
-        } else {
-            await addPendingWrite({ path: compteurPath(key), data: updateData });
-            showToast('📴 Modification sauvegardée localement');
-        }
-    } catch (err) {
-        console.error('Erreur modification:', err);
-        await addPendingWrite({ path: compteurPath(key), data: updateData });
-        showToast('📴 Sauvegardé localement');
-    }
+    toastSaveResult(await saveCompteurUpdate(key, updateData), '✅ Modification enregistrée !');
 }
 
 export function confirmDialog(title, message, confirmText = 'Oui', cancelText = 'Annuler') {
@@ -319,19 +293,7 @@ export async function submitAnomalyMotif(key) {
 async function saveAnomalyNote(key, noteText) {
     showToast('⏳ Enregistrement du signalement...');
     const updateData = { note: noteText, anomaly_date: Date.now(), last_modified: Date.now() };
-    try {
-        if (navigator.onLine) {
-            await db.ref(compteurPath(key)).update(updateData);
-            showToast('✅ Signalement enregistré', 2000);
-        } else {
-            await addPendingWrite({ path: compteurPath(key), data: updateData });
-            showToast('📴 Signalement sauvegardé localement', 2500);
-        }
-    } catch (err) {
-        console.error('Erreur signalement:', err);
-        await addPendingWrite({ path: compteurPath(key), data: updateData });
-        showToast('📴 Sauvegardé localement (erreur réseau)', 3000);
-    }
+    toastSaveResult(await saveCompteurUpdate(key, updateData), '✅ Signalement enregistré');
 }
 
 export async function deleteAnomaly(key) {
@@ -339,6 +301,5 @@ export async function deleteAnomaly(key) {
     if (!confirm) return;
     
     const updateData = { note: null, photo_url: null, anomaly_date: null, last_modified: Date.now() };
-    if (navigator.onLine) await db.ref(compteurPath(key)).update(updateData);
-    else await addPendingWrite({ path: compteurPath(key), data: updateData });
+    toastSaveResult(await saveCompteurUpdate(key, updateData), '✅ Signalement supprimé');
 }

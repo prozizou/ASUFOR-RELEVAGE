@@ -1,9 +1,9 @@
 // ==================== IMPORTS ====================
-import { APP_VERSION, firebaseConfig } from './config.js';
-import { state } from './state.js';
+import './firebase.js';
+import { APP_VERSION } from './config.js';
 import { closeModal, handleOverlayClick, showToast } from './ui.js';
 import { handleOnline, handleOffline, syncPendingWrites } from './sync.js';
-import { login, enterApp, confirmLogout, executeLogout } from './auth.js';
+import { login, resumeSession, selectLoginForage, cancelForageChoice, confirmLogout, executeLogout } from './auth.js';
 import { takePhoto, stopCamera, captureImage, retakePhoto, confirmPhotoAndIndex } from './media.js';
 import { openKeypad, keypadInput, validateKeypad, confirmReading, submitReading, editReading, submitEditReading, reportAnomaly, selectAnomalyMotif, submitAnomalyMotif, deleteAnomaly } from './actions.js';
 import { setFilter, applyFilters, renderFilterTabs } from './clients.js';
@@ -11,8 +11,7 @@ import { showReport, shareReport } from './reports.js';
 import { createPwaBanner } from './pwa.js';
 
 // ==================== FIREBASE INIT ====================
-firebase.initializeApp(firebaseConfig);
-export const db = firebase.database();
+// Voir firebase.js (importé en premier pour initialiser l'app avant les autres modules).
 
 // ==================== INITIALISATION DE L'APP ====================
 async function initializeApp() {
@@ -43,22 +42,9 @@ async function initializeApp() {
         }
     }
 
-    const savedAgentId = localStorage.getItem('asufor_id');
-    const savedForageKey = localStorage.getItem('asufor_forage_key');
-    if (savedAgentId && savedForageKey) {
-        // ✅ Re-connecter Firebase Auth anonymement si une session locale existe
-        try {
-            await firebase.auth().signInAnonymously();
-        } catch (e) {
-            console.warn('Auth anonyme (auto-login):', e.message);
-        }
-        state.currentAgentId = savedAgentId;
-        state.currentForageKey = savedForageKey;
-        enterApp(
-            localStorage.getItem('agent_name') || 'Agent',
-            localStorage.getItem('agent_zone') || 'Zone'
-        );
-    }
+    // Session agent existante : jeton Firebase (Custom Token) restauré par le
+    // SDK, sinon mode hors ligne ou demande de reconnexion.
+    await resumeSession();
 
     setInterval(() => {
         if (navigator.onLine) {
@@ -71,6 +57,8 @@ window.addEventListener('DOMContentLoaded', initializeApp);
 
 // ==================== EXPORTS GLOBAUX ====================
 window.login = login;
+window.selectLoginForage = selectLoginForage;
+window.cancelForageChoice = cancelForageChoice;
 window.confirmLogout = confirmLogout;
 window.executeLogout = executeLogout;
 

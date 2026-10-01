@@ -26,9 +26,12 @@ export function createRtdbStore({ db, credential, databaseURL }) {
         return keys;
     }
 
+    // RTDB distingue les types : agent_tel peut avoir été saisi comme nombre
+    // (779543496) ou comme chaîne ("779543496"). On interroge les deux formes.
     async function findAgentsByPhone(forageKey, phones) {
         const found = new Map();
-        await Promise.all(phones.map(async (phone) => {
+        const queries = phones.flatMap(p => [p, Number(p)]).filter(v => v === v);
+        await Promise.all(queries.map(async (phone) => {
             const snap = await db.ref(`${FORAGES_ROOT}/${forageKey}/agents`)
                 .orderByChild('agent_tel').equalTo(phone).once('value');
             snap.forEach(child => { found.set(child.key, child.val()); });
